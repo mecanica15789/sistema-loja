@@ -61,7 +61,8 @@
         </button>
         <div class="mt-6 p-4 bg-slate-50 rounded-xl text-sm text-slate-600">
           <p class="font-semibold text-slate-700 mb-2">Usuários de teste:</p>
-
+          <p><span class="font-medium">Admin:</span> admin / 1234</p>
+          <p><span class="font-medium">Gerente:</span> gerente / 1234</p>
           <p><span class="font-medium">Vendedor:</span> joao / 1234</p>
           <p><span class="font-medium">Vendedor:</span> maria / 1234</p>
         </div>
@@ -128,7 +129,6 @@
           <p class="text-slate-500 text-sm mt-1">Cadastro e estoque</p>
         </div>
 
-        <!-- NOVO: Vendedores (só Admin) -->
         <div id="card-vendedores" onclick="mostrarTela('vendedores')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
           <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-4">
             <i class="fas fa-users text-indigo-600 text-xl"></i>
@@ -145,12 +145,21 @@
           <p class="text-slate-500 text-sm mt-1">Vendas, lucro e estoque baixo</p>
         </div>
 
+        <!-- NOVO: Relatório Mensal (só Admin) -->
+        <div id="card-mensal" onclick="mostrarTela('mensal')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
+          <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-calendar-alt text-teal-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Relatório Mensal</h3>
+          <p class="text-slate-500 text-sm mt-1">Total vendido e lucro do mês</p>
+        </div>
+
         <div id="card-config" onclick="mostrarTela('config')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
           <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mb-4">
             <i class="fas fa-cog text-slate-600 text-xl"></i>
           </div>
           <h3 class="font-semibold text-slate-800 text-lg">Configurações</h3>
-          <p class="text-slate-500 text-sm mt-1">Vendedores e permissões</p>
+          <p class="text-slate-500 text-sm mt-1">Gerenciar usuários</p>
         </div>
       </div>
 
@@ -183,7 +192,7 @@
           </button>
           <h2 class="text-2xl font-bold text-slate-800">Produtos</h2>
         </div>
-        <button onclick="abrirModalProduto()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+        <button id="btn-novo-produto" onclick="abrirModalProduto()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 hidden">
           <i class="fas fa-plus"></i> Novo Produto
         </button>
       </div>
@@ -208,7 +217,7 @@
                 <th class="text-right px-4 py-3 font-semibold text-slate-600">Preço</th>
                 <th class="text-center px-4 py-3 font-semibold text-slate-600">Estoque</th>
                 <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden xl:table-cell">Local</th>
-                <th class="text-center px-4 py-3 font-semibold text-slate-600">Ações</th>
+                <th class="text-center px-4 py-3 font-semibold text-slate-600" id="th-acoes">Ações</th>
               </tr>
             </thead>
             <tbody id="lista-produtos"></tbody>
@@ -333,7 +342,7 @@
       </div>
     </main>
 
-    <!-- ========== VENDEDORES (NOVA TELA - SÓ ADMIN) ========== -->
+    <!-- ========== VENDEDORES ========== -->
     <main id="tela-vendedores" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
       <div class="mb-6">
         <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
@@ -342,9 +351,49 @@
         <h2 class="text-2xl font-bold text-slate-800">Vendedores</h2>
         <p class="text-slate-500 text-sm">Desempenho detalhado de cada vendedor</p>
       </div>
+      <div id="lista-vendedores-detalhada" class="space-y-6"></div>
+    </main>
 
-      <div id="lista-vendedores-detalhada" class="space-y-6">
-        <!-- Preenchido via JS -->
+    <!-- ========== RELATÓRIO MENSAL (NOVA TELA) ========== -->
+    <main id="tela-mensal" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="mb-6">
+        <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <h2 class="text-2xl font-bold text-slate-800">Relatório Mensal</h2>
+        <p class="text-slate-500 text-sm">Acompanhe o desempenho do mês e o histórico</p>
+      </div>
+
+      <!-- Cards do mês atual -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <p class="text-sm text-slate-500 font-medium mb-1">Total vendido no mês</p>
+          <p class="text-3xl font-bold text-slate-800" id="mensal-total">R$ 0,00</p>
+          <p class="text-xs text-slate-400 mt-2" id="mensal-periodo"></p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <p class="text-sm text-slate-500 font-medium mb-1">Lucro estimado do mês</p>
+          <p class="text-3xl font-bold text-green-600" id="mensal-lucro">R$ 0,00</p>
+          <p class="text-xs text-slate-400 mt-2">Baseado no preço de compra</p>
+        </div>
+      </div>
+
+      <!-- Botão Zerar -->
+      <div class="mb-8">
+        <button onclick="zerarMesAtual()" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
+          <i class="fas fa-redo"></i> Zerar Mês Atual
+        </button>
+        <p class="text-xs text-slate-500 mt-2">Ao zerar, o valor atual será salvo no histórico e o contador recomeça do zero.</p>
+      </div>
+
+      <!-- Histórico de meses anteriores -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b bg-slate-50">
+          <h3 class="font-bold text-slate-800">Histórico de Meses Anteriores</h3>
+        </div>
+        <div id="historico-mensal" class="p-4">
+          <!-- Preenchido via JS -->
+        </div>
       </div>
     </main>
 
@@ -414,21 +463,32 @@
           <i class="fas fa-arrow-left"></i> Voltar
         </button>
         <h2 class="text-2xl font-bold text-slate-800">Configurações</h2>
+        <p class="text-slate-500 text-sm">Gerenciar usuários do sistema</p>
       </div>
 
       <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-lg">
-        <h3 class="font-bold text-slate-800 mb-4">Adicionar vendedor</h3>
+        <h3 class="font-bold text-slate-800 mb-4">Adicionar usuário</h3>
         <div class="space-y-3">
           <input id="novo-user" type="text" placeholder="Usuário (login)" class="w-full px-4 py-2.5 border rounded-xl">
           <input id="novo-nome" type="text" placeholder="Nome completo" class="w-full px-4 py-2.5 border rounded-xl">
           <input id="novo-senha" type="text" placeholder="Senha" class="w-full px-4 py-2.5 border rounded-xl">
-          <button onclick="adicionarVendedor()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium">
+          
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Cargo</label>
+            <select id="novo-tipo" class="w-full px-4 py-2.5 border rounded-xl">
+              <option value="vendedor">Vendedor</option>
+              <option value="gerente">Gerente</option>
+            </select>
+          </div>
+
+          <button onclick="adicionarUsuario()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium">
             Adicionar
           </button>
         </div>
-        <div class="mt-6">
-          <h4 class="font-medium text-slate-700 mb-2">Vendedores cadastrados</h4>
-          <div id="lista-vendedores" class="space-y-2 text-sm"></div>
+
+        <div class="mt-8">
+          <h4 class="font-medium text-slate-700 mb-3">Usuários cadastrados</h4>
+          <div id="lista-usuarios" class="space-y-2 text-sm"></div>
         </div>
       </div>
     </main>
@@ -572,13 +632,16 @@
     let pagamentoSelecionado = null;
 
     const usuariosPadrao = {
-      admin: { senha: '1234', nome: 'Administrador', tipo: 'admin' },
-      joao:  { senha: '1234', nome: 'João Silva', tipo: 'vendedor' },
-      maria: { senha: '1234', nome: 'Maria Santos', tipo: 'vendedor' }
+      admin:   { senha: '1234', nome: 'Administrador', tipo: 'admin' },
+      gerente: { senha: '1234', nome: 'Carlos Gerente', tipo: 'gerente' },
+      joao:    { senha: '1234', nome: 'João Silva', tipo: 'vendedor' },
+      maria:   { senha: '1234', nome: 'Maria Santos', tipo: 'vendedor' }
     };
 
     function init() {
-      if (!localStorage.getItem('usuarios')) localStorage.setItem('usuarios', JSON.stringify(usuariosPadrao));
+      if (!localStorage.getItem('usuarios')) {
+        localStorage.setItem('usuarios', JSON.stringify(usuariosPadrao));
+      }
       if (!localStorage.getItem('produtos')) {
         const exemplos = [
           { id: 1, nome: 'Parafuso Sextavado', categoria: 'Parafuso', medida: 'M6 x 30', codigo: 'PAR-M6-30', compra: 0.15, venda: 0.45, estoque: 500, local: 'Gaveta A-12' },
@@ -591,6 +654,8 @@
       }
       if (!localStorage.getItem('vendas')) localStorage.setItem('vendas', '[]');
       if (!localStorage.getItem('orcamentos')) localStorage.setItem('orcamentos', '[]');
+      if (!localStorage.getItem('historicoMensal')) localStorage.setItem('historicoMensal', '[]');
+      if (!localStorage.getItem('ultimoZeroMensal')) localStorage.setItem('ultimoZeroMensal', '0');
     }
 
     function getProdutos() { return JSON.parse(localStorage.getItem('produtos') || '[]'); }
@@ -601,6 +666,14 @@
     function setOrcamentos(o) { localStorage.setItem('orcamentos', JSON.stringify(o)); }
     function getUsuarios() { return JSON.parse(localStorage.getItem('usuarios') || '{}'); }
     function setUsuarios(u) { localStorage.setItem('usuarios', JSON.stringify(u)); }
+    function getHistoricoMensal() { return JSON.parse(localStorage.getItem('historicoMensal') || '[]'); }
+    function setHistoricoMensal(h) { localStorage.setItem('historicoMensal', JSON.stringify(h)); }
+    function getUltimoZero() { return parseInt(localStorage.getItem('ultimoZeroMensal') || '0'); }
+    function setUltimoZero(ts) { localStorage.setItem('ultimoZeroMensal', String(ts)); }
+
+    function podeGerenciarProdutos() {
+      return usuarioAtual && (usuarioAtual.tipo === 'admin' || usuarioAtual.tipo === 'gerente');
+    }
 
     function fazerLogin() {
       const user = document.getElementById('login-user').value.trim().toLowerCase();
@@ -625,31 +698,38 @@
     function mostrarApp() {
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('main-app').classList.remove('hidden');
-      document.getElementById('user-info').textContent = usuarioAtual.nome;
+      
+      const tipoLabel = { admin: 'Admin', gerente: 'Gerente', vendedor: 'Vendedor' };
+      document.getElementById('user-info').textContent = `${usuarioAtual.nome} (${tipoLabel[usuarioAtual.tipo] || usuarioAtual.tipo})`;
       document.getElementById('saudacao').textContent = `Olá, ${usuarioAtual.nome.split(' ')[0]}!`;
       
       const isAdmin = usuarioAtual.tipo === 'admin';
+      
       document.getElementById('card-caixa').classList.toggle('hidden', !isAdmin);
       document.getElementById('card-config').classList.toggle('hidden', !isAdmin);
       document.getElementById('card-vendedores').classList.toggle('hidden', !isAdmin);
+      document.getElementById('card-mensal').classList.toggle('hidden', !isAdmin);
       
       atualizarDashboard();
       mostrarTela('dashboard');
     }
 
     function mostrarTela(tela) {
-      if (['caixa', 'config', 'vendedores'].includes(tela) && usuarioAtual.tipo !== 'admin') {
+      if (['caixa', 'config', 'vendedores', 'mensal'].includes(tela) && usuarioAtual.tipo !== 'admin') {
         alert('Acesso restrito ao Administrador.');
         return;
       }
 
-      ['dashboard','produtos','venda','orcamentos','caixa','config','vendedores'].forEach(t => {
+      ['dashboard','produtos','venda','orcamentos','caixa','config','vendedores','mensal'].forEach(t => {
         const el = document.getElementById('tela-' + t);
         if (el) el.classList.add('hidden');
       });
       document.getElementById('tela-' + tela).classList.remove('hidden');
 
-      if (tela === 'produtos') renderProdutos();
+      if (tela === 'produtos') {
+        document.getElementById('btn-novo-produto').classList.toggle('hidden', !podeGerenciarProdutos());
+        renderProdutos();
+      }
       if (tela === 'venda') { 
         document.getElementById('busca-venda').value = ''; 
         buscarParaVenda(); 
@@ -658,9 +738,106 @@
       }
       if (tela === 'orcamentos') renderOrcamentos();
       if (tela === 'caixa') renderCaixa();
-      if (tela === 'config') renderVendedores();
+      if (tela === 'config') renderUsuarios();
       if (tela === 'vendedores') renderVendedoresDetalhado();
+      if (tela === 'mensal') renderRelatorioMensal();
       if (tela === 'dashboard') atualizarDashboard();
+    }
+
+    // ==================== RELATÓRIO MENSAL ====================
+    function getVendasMesAtual() {
+      const agora = new Date();
+      const ano = agora.getFullYear();
+      const mes = agora.getMonth();
+      const ultimoZero = getUltimoZero();
+
+      return getVendas().filter(v => {
+        const dataVenda = new Date(v.data);
+        const depoisDoZero = dataVenda.getTime() > ultimoZero;
+        const mesmoMes = dataVenda.getFullYear() === ano && dataVenda.getMonth() === mes;
+        return depoisDoZero && mesmoMes;
+      });
+    }
+
+    function renderRelatorioMensal() {
+      const vendasMes = getVendasMesAtual();
+      const total = vendasMes.reduce((s, v) => s + v.total, 0);
+      const lucro = vendasMes.reduce((s, v) => s + (v.lucro || 0), 0);
+
+      const agora = new Date();
+      const nomeMes = agora.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+      document.getElementById('mensal-total').textContent = `R$ ${total.toFixed(2)}`;
+      document.getElementById('mensal-lucro').textContent = `R$ ${lucro.toFixed(2)}`;
+      document.getElementById('mensal-periodo').textContent = `Período: ${nomeMes}`;
+
+      // Histórico
+      const historico = getHistoricoMensal();
+      const container = document.getElementById('historico-mensal');
+
+      if (historico.length === 0) {
+        container.innerHTML = `<p class="text-center text-slate-400 py-8">Nenhum mês zerado ainda</p>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Mês</th>
+                <th class="text-right px-4 py-3 font-semibold text-slate-600">Total Vendido</th>
+                <th class="text-right px-4 py-3 font-semibold text-slate-600">Lucro Estimado</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Zerado em</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${historico.map(h => `
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="px-4 py-3 font-medium text-slate-800">${h.mesNome}</td>
+                  <td class="px-4 py-3 text-right font-medium">R$ ${h.total.toFixed(2)}</td>
+                  <td class="px-4 py-3 text-right text-green-600 font-medium">R$ ${h.lucro.toFixed(2)}</td>
+                  <td class="px-4 py-3 text-slate-500">${new Date(h.dataZero).toLocaleString('pt-BR')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function zerarMesAtual() {
+      const vendasMes = getVendasMesAtual();
+      const total = vendasMes.reduce((s, v) => s + v.total, 0);
+      const lucro = vendasMes.reduce((s, v) => s + (v.lucro || 0), 0);
+
+      if (total === 0 && lucro === 0) {
+        alert('Não há valores para zerar neste mês.');
+        return;
+      }
+
+      if (!confirm(`Deseja zerar o mês atual?\n\nTotal: R$ ${total.toFixed(2)}\nLucro: R$ ${lucro.toFixed(2)}\n\nOs valores serão salvos no histórico.`)) {
+        return;
+      }
+
+      const agora = new Date();
+      const mesNome = agora.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+      const historico = getHistoricoMensal();
+      historico.unshift({
+        mesNome: mesNome.charAt(0).toUpperCase() + mesNome.slice(1),
+        total,
+        lucro,
+        dataZero: agora.toISOString(),
+        qtdVendas: vendasMes.length
+      });
+      setHistoricoMensal(historico);
+
+      // Marca o momento do zero
+      setUltimoZero(Date.now());
+
+      alert('Mês zerado com sucesso! Os valores foram salvos no histórico.');
+      renderRelatorioMensal();
     }
 
     // ==================== PRODUTOS ====================
@@ -669,6 +846,9 @@
       const tbody = document.getElementById('lista-produtos');
       const sem = document.getElementById('sem-produtos');
       const termo = filtro.toLowerCase();
+      const podeEditar = podeGerenciarProdutos();
+
+      document.getElementById('th-acoes').style.display = podeEditar ? '' : 'none';
 
       const filtrados = produtos.filter(p =>
         p.nome.toLowerCase().includes(termo) ||
@@ -699,10 +879,12 @@
             <span class="${p.estoque <= 20 ? 'text-amber-600 font-bold' : 'text-slate-700'}">${p.estoque}</span>
           </td>
           <td class="px-4 py-3 hidden xl:table-cell text-slate-600">${p.local || '-'}</td>
-          <td class="px-4 py-3 text-center">
-            <button onclick="editarProduto(${p.id})" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
-            <button onclick="excluirProduto(${p.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-          </td>
+          ${podeEditar ? `
+            <td class="px-4 py-3 text-center">
+              <button onclick="editarProduto(${p.id})" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
+              <button onclick="excluirProduto(${p.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+            </td>
+          ` : '<td></td>'}
         </tr>
       `).join('');
     }
@@ -712,6 +894,10 @@
     }
 
     function abrirModalProduto(produto = null) {
+      if (!podeGerenciarProdutos()) {
+        alert('Você não tem permissão para cadastrar ou editar produtos.');
+        return;
+      }
       document.getElementById('modal-produto').classList.remove('hidden');
       document.getElementById('modal-produto-titulo').textContent = produto ? 'Editar Produto' : 'Novo Produto';
       document.getElementById('produto-id').value = produto ? produto.id : '';
@@ -731,6 +917,11 @@
 
     function salvarProduto(e) {
       e.preventDefault();
+      if (!podeGerenciarProdutos()) {
+        alert('Você não tem permissão para cadastrar ou editar produtos.');
+        return;
+      }
+
       const produtos = getProdutos();
       const id = document.getElementById('produto-id').value;
       const dados = {
@@ -758,11 +949,19 @@
     }
 
     function editarProduto(id) {
+      if (!podeGerenciarProdutos()) {
+        alert('Você não tem permissão para editar produtos.');
+        return;
+      }
       const p = getProdutos().find(x => x.id === id);
       if (p) abrirModalProduto(p);
     }
 
     function excluirProduto(id) {
+      if (!podeGerenciarProdutos()) {
+        alert('Você não tem permissão para excluir produtos.');
+        return;
+      }
       if (!confirm('Excluir este produto?')) return;
       setProdutos(getProdutos().filter(p => p.id !== id));
       renderProdutos();
@@ -1087,13 +1286,11 @@
       atualizarDashboard();
     }
 
-    // ==================== VENDEDORES DETALHADO (NOVA FUNÇÃO) ====================
     function renderVendedoresDetalhado() {
       const container = document.getElementById('lista-vendedores-detalhada');
       const usuarios = getUsuarios();
       const vendas = getVendas();
 
-      // Filtra apenas vendedores
       const vendedores = Object.entries(usuarios)
         .filter(([_, u]) => u.tipo === 'vendedor')
         .map(([login, u]) => ({ login, ...u }));
@@ -1108,14 +1305,12 @@
       }
 
       container.innerHTML = vendedores.map(vendedor => {
-        // Vendas deste vendedor
         const vendasVendedor = vendas.filter(v => v.vendedorLogin === vendedor.login || v.vendedor === vendedor.nome);
         const totalVendido = vendasVendedor.reduce((s, v) => s + v.total, 0);
         const qtdVendas = vendasVendedor.length;
 
         return `
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <!-- Cabeçalho do vendedor -->
             <div class="bg-slate-50 px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div class="flex items-center gap-3">
                 <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -1138,7 +1333,6 @@
               </div>
             </div>
 
-            <!-- Lista de vendas do vendedor -->
             <div class="p-4">
               ${qtdVendas === 0 ? `
                 <p class="text-center text-slate-400 py-6">Nenhuma venda realizada ainda</p>
@@ -1156,7 +1350,6 @@
                         <div class="font-bold text-green-600">R$ ${venda.total.toFixed(2)}</div>
                       </div>
                       
-                      <!-- Itens da venda -->
                       <div class="bg-slate-50 rounded-lg p-3">
                         <p class="text-xs font-semibold text-slate-500 mb-2">Itens da venda:</p>
                         <div class="space-y-1">
@@ -1225,43 +1418,52 @@
       `).join('') || '<tr><td colspan="4" class="px-3 py-6 text-center text-slate-400">Nenhuma venda hoje</td></tr>';
     }
 
-    function renderVendedores() {
+    function renderUsuarios() {
       const usuarios = getUsuarios();
-      document.getElementById('lista-vendedores').innerHTML = Object.entries(usuarios)
-        .filter(([_, u]) => u.tipo === 'vendedor')
+      const tipoLabel = { admin: 'Admin', gerente: 'Gerente', vendedor: 'Vendedor' };
+      
+      document.getElementById('lista-usuarios').innerHTML = Object.entries(usuarios)
         .map(([login, u]) => `
           <div class="flex justify-between items-center py-2 border-b">
             <div>
               <div class="font-medium">${u.nome}</div>
-              <div class="text-xs text-slate-500">${login}</div>
+              <div class="text-xs text-slate-500">${login} • ${tipoLabel[u.tipo] || u.tipo}</div>
             </div>
-            <button onclick="removerVendedor('${login}')" class="text-red-500 text-sm">Remover</button>
+            ${login !== 'admin' ? `
+              <button onclick="removerUsuario('${login}')" class="text-red-500 text-sm">Remover</button>
+            ` : '<span class="text-xs text-slate-400">Protegido</span>'}
           </div>
-        `).join('') || '<p class="text-slate-400">Nenhum vendedor extra</p>';
+        `).join('');
     }
 
-    function adicionarVendedor() {
+    function adicionarUsuario() {
       const login = document.getElementById('novo-user').value.trim().toLowerCase();
       const nome = document.getElementById('novo-nome').value.trim();
       const senha = document.getElementById('novo-senha').value;
+      const tipo = document.getElementById('novo-tipo').value;
+
       if (!login || !nome || !senha) { alert('Preencha todos os campos'); return; }
       const usuarios = getUsuarios();
       if (usuarios[login]) { alert('Usuário já existe'); return; }
-      usuarios[login] = { senha, nome, tipo: 'vendedor' };
+
+      usuarios[login] = { senha, nome, tipo };
       setUsuarios(usuarios);
+      
       document.getElementById('novo-user').value = '';
       document.getElementById('novo-nome').value = '';
       document.getElementById('novo-senha').value = '';
-      renderVendedores();
-      alert('Vendedor adicionado!');
+      document.getElementById('novo-tipo').value = 'vendedor';
+      
+      renderUsuarios();
+      alert('Usuário adicionado com sucesso!');
     }
 
-    function removerVendedor(login) {
-      if (!confirm('Remover este vendedor?')) return;
+    function removerUsuario(login) {
+      if (!confirm('Remover este usuário?')) return;
       const usuarios = getUsuarios();
       delete usuarios[login];
       setUsuarios(usuarios);
-      renderVendedores();
+      renderUsuarios();
     }
 
     function atualizarDashboard() {
