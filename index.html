@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Loja - Parafusos & Ferragens</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 20px -6px rgb(0 0 0 / 0.12); }
+    .transition-all { transition: all 0.2s ease; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #nota-impressao, #nota-impressao * { visibility: visible; }
+      #nota-impressao {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm;
+        padding: 10px;
+        font-size: 12px;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+  <!-- ==================== LOGIN ==================== -->
+  <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-10 text-center">
+        <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-tools text-3xl text-white"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-white">Sistema da Loja</h1>
+        <p class="text-blue-100 mt-1">Parafusos & Ferragens</p>
+      </div>
+      <div class="p-8">
+        <div class="mb-5">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Usuário</label>
+          <div class="relative">
+            <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input id="login-user" type="text" placeholder="Digite seu usuário"
+              class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+          </div>
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Senha</label>
+          <div class="relative">
+            <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input id="login-pass" type="password" placeholder="Digite sua senha"
+              class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+          </div>
+        </div>
+        <button onclick="fazerLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition flex items-center justify-center gap-2">
+          <i class="fas fa-sign-in-alt"></i> Entrar
+        </button>
+        <div class="mt-6 p-4 bg-slate-50 rounded-xl text-sm text-slate-600">
+          <p class="font-semibold text-slate-700 mb-2">Usuários de teste:</p>
+
+          <p><span class="font-medium">Vendedor:</span> joao / 1234</p>
+          <p><span class="font-medium">Vendedor:</span> maria / 1234</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== APP ==================== -->
+  <div id="main-app" class="hidden min-h-screen">
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-40 no-print">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-3 cursor-pointer" onclick="mostrarTela('dashboard')">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+              <i class="fas fa-tools text-white"></i>
+            </div>
+            <div>
+              <h1 class="font-bold text-slate-800 text-lg leading-tight">Sistema da Loja</h1>
+              <p class="text-xs text-slate-500">Parafusos & Ferragens</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="hidden sm:flex items-center gap-2 text-sm">
+              <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span id="user-info" class="font-medium text-slate-700"></span>
+            </div>
+            <button onclick="fazerLogout()" class="text-slate-500 hover:text-red-600 transition p-2" title="Sair">
+              <i class="fas fa-sign-out-alt text-lg"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ========== DASHBOARD ========== -->
+    <main id="tela-dashboard" class="max-w-7xl mx-auto px-4 sm:px-6 py-8 no-print">
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-slate-800" id="saudacao">Olá!</h2>
+        <p class="text-slate-500 mt-1">O que você deseja fazer agora?</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div onclick="mostrarTela('venda')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Nova Venda / Pesquisa</h3>
+          <p class="text-slate-500 text-sm mt-1">Pesquise rápido e monte o carrinho</p>
+        </div>
+
+        <div onclick="mostrarTela('orcamentos')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-file-invoice text-amber-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Orçamentos</h3>
+          <p class="text-slate-500 text-sm mt-1">Salvar e recuperar orçamentos</p>
+        </div>
+
+        <div onclick="mostrarTela('produtos')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-boxes-stacked text-purple-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Produtos</h3>
+          <p class="text-slate-500 text-sm mt-1">Cadastro e estoque</p>
+        </div>
+
+        <!-- NOVO: Vendedores (só Admin) -->
+        <div id="card-vendedores" onclick="mostrarTela('vendedores')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
+          <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-users text-indigo-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Vendedores</h3>
+          <p class="text-slate-500 text-sm mt-1">Desempenho e vendas detalhadas</p>
+        </div>
+
+        <div id="card-caixa" onclick="mostrarTela('caixa')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
+          <div class="w-12 h-12 bg-rose-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-chart-line text-rose-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Caixa & Relatórios</h3>
+          <p class="text-slate-500 text-sm mt-1">Vendas, lucro e estoque baixo</p>
+        </div>
+
+        <div id="card-config" onclick="mostrarTela('config')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
+          <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-cog text-slate-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Configurações</h3>
+          <p class="text-slate-500 text-sm mt-1">Vendedores e permissões</p>
+        </div>
+      </div>
+
+      <div class="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-slate-200" id="card-vendas-hoje">
+          <p class="text-xs text-slate-500 font-medium">Vendas hoje</p>
+          <p class="text-2xl font-bold text-slate-800 mt-1" id="dash-vendas-hoje">R$ 0,00</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200">
+          <p class="text-xs text-slate-500 font-medium">Produtos</p>
+          <p class="text-2xl font-bold text-slate-800 mt-1" id="dash-total-produtos">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200">
+          <p class="text-xs text-slate-500 font-medium">Estoque baixo</p>
+          <p class="text-2xl font-bold text-amber-600 mt-1" id="dash-estoque-baixo">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200">
+          <p class="text-xs text-slate-500 font-medium">Orçamentos</p>
+          <p class="text-2xl font-bold text-slate-800 mt-1" id="dash-orcamentos">0</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- ========== PRODUTOS ========== -->
+    <main id="tela-produtos" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+            <i class="fas fa-arrow-left"></i> Voltar
+          </button>
+          <h2 class="text-2xl font-bold text-slate-800">Produtos</h2>
+        </div>
+        <button onclick="abrirModalProduto()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+          <i class="fas fa-plus"></i> Novo Produto
+        </button>
+      </div>
+
+      <div class="mb-5">
+        <div class="relative">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input id="busca-produto" type="text" placeholder="Buscar por nome, código, medida ou localização..."
+            oninput="filtrarProdutos()" class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b">
+              <tr>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Código</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Produto</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden md:table-cell">Categoria</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden lg:table-cell">Medida</th>
+                <th class="text-right px-4 py-3 font-semibold text-slate-600">Preço</th>
+                <th class="text-center px-4 py-3 font-semibold text-slate-600">Estoque</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden xl:table-cell">Local</th>
+                <th class="text-center px-4 py-3 font-semibold text-slate-600">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="lista-produtos"></tbody>
+          </table>
+        </div>
+        <div id="sem-produtos" class="hidden p-10 text-center text-slate-500">
+          <i class="fas fa-box-open text-4xl mb-3 text-slate-300"></i>
+          <p>Nenhum produto encontrado</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- ========== VENDA ========== -->
+    <main id="tela-venda" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+            <i class="fas fa-arrow-left"></i> Voltar
+          </button>
+          <h2 class="text-2xl font-bold text-slate-800">Nova Venda</h2>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-4">
+          <div class="relative">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input id="busca-venda" type="text" placeholder="Ex: M6 30  ou  parafuso sextavado..."
+              oninput="buscarParaVenda()" autofocus
+              class="w-full pl-11 pr-4 py-3.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-lg bg-white">
+          </div>
+
+          <div id="resultados-venda" class="bg-white rounded-2xl border border-slate-200 shadow-sm max-h-[420px] overflow-y-auto">
+            <div class="p-8 text-center text-slate-400">
+              <i class="fas fa-search text-3xl mb-2"></i>
+              <p>Digite para pesquisar produtos</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <div class="p-4 border-b flex items-center justify-between">
+            <h3 class="font-bold text-slate-800"><i class="fas fa-shopping-cart mr-2 text-green-600"></i>Carrinho</h3>
+            <button onclick="limparCarrinho()" class="text-sm text-red-500 hover:text-red-600">Limpar</button>
+          </div>
+          <div id="itens-carrinho" class="flex-1 p-4 space-y-3 max-h-[260px] overflow-y-auto">
+            <p class="text-slate-400 text-sm text-center py-8">Carrinho vazio</p>
+          </div>
+          <div class="p-4 border-t space-y-3">
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-500">Subtotal</span>
+              <span id="carrinho-subtotal" class="font-medium">R$ 0,00</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-slate-500">Desconto %</label>
+              <input id="carrinho-desconto" type="number" min="0" step="0.1" value="0" 
+                oninput="validarDesconto()"
+                class="w-20 px-2 py-1 border rounded-lg text-sm">
+              <span id="aviso-desconto" class="text-xs text-amber-600 hidden">Máx. 5%</span>
+            </div>
+
+            <div>
+              <label class="block text-sm text-slate-500 mb-1">Observação (CPF, CNPJ, etc)</label>
+              <textarea id="carrinho-observacao" rows="2" placeholder="Ex: CPF 123.456.789-00 / Cliente João"
+                class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm resize-none focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+            </div>
+
+            <div class="flex justify-between text-lg font-bold">
+              <span>Total</span>
+              <span id="carrinho-total" class="text-green-600">R$ 0,00</span>
+            </div>
+            <div class="grid grid-cols-1 gap-2">
+              <button onclick="imprimirNota()" class="bg-slate-700 hover:bg-slate-800 text-white py-2.5 rounded-xl text-sm font-medium">
+                <i class="fas fa-print mr-1"></i> Imprimir Nota para o Caixa
+              </button>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="salvarOrcamento()" class="bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl text-sm font-medium">
+                  <i class="fas fa-file-invoice mr-1"></i> Orçamento
+                </button>
+                <button onclick="abrirModalFecharVenda()" class="bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-medium">
+                  <i class="fas fa-check mr-1"></i> Fechar Venda
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ========== ORÇAMENTOS ========== -->
+    <main id="tela-orcamentos" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+            <i class="fas fa-arrow-left"></i> Voltar
+          </button>
+          <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b">
+              <tr>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Nº</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Data</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Vendedor</th>
+                <th class="text-right px-4 py-3 font-semibold text-slate-600">Total</th>
+                <th class="text-center px-4 py-3 font-semibold text-slate-600">Itens</th>
+                <th class="text-center px-4 py-3 font-semibold text-slate-600">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="lista-orcamentos"></tbody>
+          </table>
+        </div>
+        <div id="sem-orcamentos" class="hidden p-10 text-center text-slate-500">
+          <i class="fas fa-file-invoice text-4xl mb-3 text-slate-300"></i>
+          <p>Nenhum orçamento salvo</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- ========== VENDEDORES (NOVA TELA - SÓ ADMIN) ========== -->
+    <main id="tela-vendedores" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="mb-6">
+        <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <h2 class="text-2xl font-bold text-slate-800">Vendedores</h2>
+        <p class="text-slate-500 text-sm">Desempenho detalhado de cada vendedor</p>
+      </div>
+
+      <div id="lista-vendedores-detalhada" class="space-y-6">
+        <!-- Preenchido via JS -->
+      </div>
+    </main>
+
+    <!-- ========== CAIXA ========== -->
+    <main id="tela-caixa" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="mb-6">
+        <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <h2 class="text-2xl font-bold text-slate-800">Caixa & Relatórios</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-xl p-5 border border-slate-200">
+          <p class="text-xs text-slate-500 font-medium">Total vendido hoje</p>
+          <p class="text-2xl font-bold text-slate-800 mt-1" id="rel-total-hoje">R$ 0,00</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-slate-200">
+          <p class="text-xs text-slate-500 font-medium">Lucro estimado</p>
+          <p class="text-2xl font-bold text-green-600 mt-1" id="rel-lucro">R$ 0,00</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-slate-200">
+          <p class="text-xs text-slate-500 font-medium">Qtd. vendas</p>
+          <p class="text-2xl font-bold text-slate-800 mt-1" id="rel-qtd-vendas">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-slate-200">
+          <p class="text-xs text-slate-500 font-medium">Estoque baixo</p>
+          <p class="text-2xl font-bold text-amber-600 mt-1" id="rel-estoque-baixo">0</p>
+        </div>
+      </div>
+
+      <div id="area-admin-relatorios">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <h3 class="font-bold text-slate-800 mb-4">Formas de pagamento (hoje)</h3>
+            <div id="rel-pagamentos" class="space-y-2 text-sm"></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <h3 class="font-bold text-slate-800 mb-4">Vendas por vendedor (hoje)</h3>
+            <div id="rel-vendedores" class="space-y-2 text-sm"></div>
+          </div>
+        </div>
+
+        <div class="mt-6 bg-white rounded-2xl border border-slate-200 p-5">
+          <h3 class="font-bold text-slate-800 mb-4">Vendas de hoje (detalhado)</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="text-left px-3 py-2">Hora</th>
+                  <th class="text-left px-3 py-2">Vendedor</th>
+                  <th class="text-left px-3 py-2">Pagamento</th>
+                  <th class="text-right px-3 py-2">Total</th>
+                </tr>
+              </thead>
+              <tbody id="lista-vendas"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ========== CONFIG ========== -->
+    <main id="tela-config" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="mb-6">
+        <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <h2 class="text-2xl font-bold text-slate-800">Configurações</h2>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-lg">
+        <h3 class="font-bold text-slate-800 mb-4">Adicionar vendedor</h3>
+        <div class="space-y-3">
+          <input id="novo-user" type="text" placeholder="Usuário (login)" class="w-full px-4 py-2.5 border rounded-xl">
+          <input id="novo-nome" type="text" placeholder="Nome completo" class="w-full px-4 py-2.5 border rounded-xl">
+          <input id="novo-senha" type="text" placeholder="Senha" class="w-full px-4 py-2.5 border rounded-xl">
+          <button onclick="adicionarVendedor()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium">
+            Adicionar
+          </button>
+        </div>
+        <div class="mt-6">
+          <h4 class="font-medium text-slate-700 mb-2">Vendedores cadastrados</h4>
+          <div id="lista-vendedores" class="space-y-2 text-sm"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL PRODUTO -->
+  <div id="modal-produto" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 no-print">
+    <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-slate-800" id="modal-produto-titulo">Novo Produto</h3>
+        <button onclick="fecharModalProduto()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+      </div>
+      <form id="form-produto" onsubmit="salvarProduto(event)" class="p-6 space-y-4">
+        <input type="hidden" id="produto-id">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Nome do produto *</label>
+          <input id="produto-nome" required class="w-full px-4 py-2.5 border rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Categoria</label>
+            <input id="produto-categoria" class="w-full px-4 py-2.5 border rounded-xl">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Medida</label>
+            <input id="produto-medida" class="w-full px-4 py-2.5 border rounded-xl">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Código *</label>
+          <input id="produto-codigo" required class="w-full px-4 py-2.5 border rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Preço Compra (R$)</label>
+            <input id="produto-compra" type="number" step="0.01" min="0" class="w-full px-4 py-2.5 border rounded-xl" value="0">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Preço Venda (R$) *</label>
+            <input id="produto-venda" type="number" step="0.01" min="0" required class="w-full px-4 py-2.5 border rounded-xl">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Estoque</label>
+            <input id="produto-estoque" type="number" min="0" class="w-full px-4 py-2.5 border rounded-xl" value="0">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Localização</label>
+            <input id="produto-local" class="w-full px-4 py-2.5 border rounded-xl">
+          </div>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="fecharModalProduto()" class="flex-1 py-2.5 border rounded-xl text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FECHAR VENDA -->
+  <div id="modal-fechar-venda" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 no-print">
+    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+      <div class="px-6 py-4 border-b flex items-center justify-between">
+        <h3 class="text-lg font-bold text-slate-800">Fechar Venda</h3>
+        <button onclick="fecharModalFecharVenda()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="text-center">
+          <p class="text-slate-500 text-sm">Total a pagar</p>
+          <p class="text-3xl font-bold text-green-600" id="modal-total-venda">R$ 0,00</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Forma de pagamento</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="selecionarPagamento('Pix')" class="pagamento-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-blue-500">Pix</button>
+            <button onclick="selecionarPagamento('Dinheiro')" class="pagamento-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-blue-500">Dinheiro</button>
+            <button onclick="selecionarPagamento('Débito')" class="pagamento-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-blue-500">Débito</button>
+            <button onclick="selecionarPagamento('Crédito')" class="pagamento-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-blue-500">Crédito</button>
+            <button onclick="selecionarPagamento('Fiado')" class="pagamento-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-blue-500 col-span-2">Fiado</button>
+          </div>
+        </div>
+        <button onclick="confirmarVenda()" id="btn-confirmar-venda" disabled
+          class="w-full bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white py-3 rounded-xl font-semibold">
+          Confirmar Venda
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTA PARA IMPRESSÃO -->
+  <div id="nota-impressao" class="hidden fixed inset-0 bg-white z-50 p-6 overflow-auto">
+    <div class="max-w-sm mx-auto border border-slate-300 p-4">
+      <div class="text-center mb-4">
+        <h2 class="text-lg font-bold">LOJA DE PARAFUSOS & FERRAGENS</h2>
+        <p class="text-xs text-slate-600">Nota para pagamento no Caixa</p>
+      </div>
+      <div class="text-xs mb-3 space-y-1">
+        <p><strong>Nº:</strong> <span id="nota-numero"></span></p>
+        <p><strong>Data:</strong> <span id="nota-data"></span></p>
+        <p><strong>Vendedor:</strong> <span id="nota-vendedor"></span></p>
+      </div>
+      <hr class="my-2 border-slate-300">
+      <table class="w-full text-xs mb-3">
+        <thead>
+          <tr class="border-b">
+            <th class="text-left py-1">Item</th>
+            <th class="text-center py-1">Qtd</th>
+            <th class="text-right py-1">Valor</th>
+          </tr>
+        </thead>
+        <tbody id="nota-itens"></tbody>
+      </table>
+      <hr class="my-2 border-slate-300">
+      <div class="text-sm space-y-1">
+        <div class="flex justify-between"><span>Subtotal:</span> <span id="nota-subtotal"></span></div>
+        <div class="flex justify-between"><span>Desconto:</span> <span id="nota-desconto"></span></div>
+        <div class="flex justify-between font-bold text-base mt-2"><span>TOTAL:</span> <span id="nota-total"></span></div>
+      </div>
+
+      <div id="nota-obs-container" class="mt-3 pt-2 border-t border-slate-300 hidden">
+        <p class="text-xs font-semibold mb-1">Observação:</p>
+        <p id="nota-observacao" class="text-xs whitespace-pre-wrap"></p>
+      </div>
+
+      <hr class="my-3 border-slate-300">
+      <p class="text-center text-xs text-slate-500">Apresente esta nota no caixa para pagamento</p>
+      <p class="text-center text-xs mt-4">Obrigado pela preferência!</p>
+    </div>
+    <div class="max-w-sm mx-auto mt-6 flex gap-3 no-print">
+      <button onclick="window.print()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium">
+        <i class="fas fa-print mr-1"></i> Imprimir
+      </button>
+      <button onclick="fecharNota()" class="flex-1 border border-slate-300 py-2.5 rounded-xl">Fechar</button>
+    </div>
+  </div>
+
+  <script>
+    let usuarioAtual = null;
+    let carrinho = [];
+    let pagamentoSelecionado = null;
+
+    const usuariosPadrao = {
+      admin: { senha: '1234', nome: 'Administrador', tipo: 'admin' },
+      joao:  { senha: '1234', nome: 'João Silva', tipo: 'vendedor' },
+      maria: { senha: '1234', nome: 'Maria Santos', tipo: 'vendedor' }
+    };
+
+    function init() {
+      if (!localStorage.getItem('usuarios')) localStorage.setItem('usuarios', JSON.stringify(usuariosPadrao));
+      if (!localStorage.getItem('produtos')) {
+        const exemplos = [
+          { id: 1, nome: 'Parafuso Sextavado', categoria: 'Parafuso', medida: 'M6 x 30', codigo: 'PAR-M6-30', compra: 0.15, venda: 0.45, estoque: 500, local: 'Gaveta A-12' },
+          { id: 2, nome: 'Parafuso Sextavado', categoria: 'Parafuso', medida: 'M8 x 40', codigo: 'PAR-M8-40', compra: 0.25, venda: 0.70, estoque: 320, local: 'Gaveta A-14' },
+          { id: 3, nome: 'Porca Sextavada', categoria: 'Porca', medida: 'M6', codigo: 'POR-M6', compra: 0.08, venda: 0.25, estoque: 800, local: 'Gaveta B-03' },
+          { id: 4, nome: 'Arruela Lisa', categoria: 'Arruela', medida: 'M6', codigo: 'ARR-M6', compra: 0.03, venda: 0.12, estoque: 1000, local: 'Gaveta B-05' },
+          { id: 5, nome: 'Parafuso Allen', categoria: 'Parafuso', medida: 'M5 x 20', codigo: 'ALL-M5-20', compra: 0.18, venda: 0.55, estoque: 15, local: 'Gaveta C-01' }
+        ];
+        localStorage.setItem('produtos', JSON.stringify(exemplos));
+      }
+      if (!localStorage.getItem('vendas')) localStorage.setItem('vendas', '[]');
+      if (!localStorage.getItem('orcamentos')) localStorage.setItem('orcamentos', '[]');
+    }
+
+    function getProdutos() { return JSON.parse(localStorage.getItem('produtos') || '[]'); }
+    function setProdutos(p) { localStorage.setItem('produtos', JSON.stringify(p)); }
+    function getVendas() { return JSON.parse(localStorage.getItem('vendas') || '[]'); }
+    function setVendas(v) { localStorage.setItem('vendas', JSON.stringify(v)); }
+    function getOrcamentos() { return JSON.parse(localStorage.getItem('orcamentos') || '[]'); }
+    function setOrcamentos(o) { localStorage.setItem('orcamentos', JSON.stringify(o)); }
+    function getUsuarios() { return JSON.parse(localStorage.getItem('usuarios') || '{}'); }
+    function setUsuarios(u) { localStorage.setItem('usuarios', JSON.stringify(u)); }
+
+    function fazerLogin() {
+      const user = document.getElementById('login-user').value.trim().toLowerCase();
+      const pass = document.getElementById('login-pass').value;
+      const usuarios = getUsuarios();
+      if (usuarios[user] && usuarios[user].senha === pass) {
+        usuarioAtual = { login: user, ...usuarios[user] };
+        localStorage.setItem('usuarioLogado', JSON.stringify(usuarioAtual));
+        mostrarApp();
+      } else {
+        alert('Usuário ou senha incorretos!');
+      }
+    }
+
+    function fazerLogout() {
+      localStorage.removeItem('usuarioLogado');
+      usuarioAtual = null;
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('main-app').classList.add('hidden');
+    }
+
+    function mostrarApp() {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('main-app').classList.remove('hidden');
+      document.getElementById('user-info').textContent = usuarioAtual.nome;
+      document.getElementById('saudacao').textContent = `Olá, ${usuarioAtual.nome.split(' ')[0]}!`;
+      
+      const isAdmin = usuarioAtual.tipo === 'admin';
+      document.getElementById('card-caixa').classList.toggle('hidden', !isAdmin);
+      document.getElementById('card-config').classList.toggle('hidden', !isAdmin);
+      document.getElementById('card-vendedores').classList.toggle('hidden', !isAdmin);
+      
+      atualizarDashboard();
+      mostrarTela('dashboard');
+    }
+
+    function mostrarTela(tela) {
+      if (['caixa', 'config', 'vendedores'].includes(tela) && usuarioAtual.tipo !== 'admin') {
+        alert('Acesso restrito ao Administrador.');
+        return;
+      }
+
+      ['dashboard','produtos','venda','orcamentos','caixa','config','vendedores'].forEach(t => {
+        const el = document.getElementById('tela-' + t);
+        if (el) el.classList.add('hidden');
+      });
+      document.getElementById('tela-' + tela).classList.remove('hidden');
+
+      if (tela === 'produtos') renderProdutos();
+      if (tela === 'venda') { 
+        document.getElementById('busca-venda').value = ''; 
+        buscarParaVenda(); 
+        renderCarrinho(); 
+        configurarDesconto();
+      }
+      if (tela === 'orcamentos') renderOrcamentos();
+      if (tela === 'caixa') renderCaixa();
+      if (tela === 'config') renderVendedores();
+      if (tela === 'vendedores') renderVendedoresDetalhado();
+      if (tela === 'dashboard') atualizarDashboard();
+    }
+
+    // ==================== PRODUTOS ====================
+    function renderProdutos(filtro = '') {
+      const produtos = getProdutos();
+      const tbody = document.getElementById('lista-produtos');
+      const sem = document.getElementById('sem-produtos');
+      const termo = filtro.toLowerCase();
+
+      const filtrados = produtos.filter(p =>
+        p.nome.toLowerCase().includes(termo) ||
+        p.codigo.toLowerCase().includes(termo) ||
+        (p.medida || '').toLowerCase().includes(termo) ||
+        (p.local || '').toLowerCase().includes(termo) ||
+        (p.categoria || '').toLowerCase().includes(termo)
+      );
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = '';
+        sem.classList.remove('hidden');
+        return;
+      }
+      sem.classList.add('hidden');
+
+      tbody.innerHTML = filtrados.map(p => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="px-4 py-3 font-medium text-slate-700">${p.codigo}</td>
+          <td class="px-4 py-3">
+            <div class="font-medium text-slate-800">${p.nome}</div>
+            <div class="text-xs text-slate-500 md:hidden">${p.categoria || ''} ${p.medida || ''}</div>
+          </td>
+          <td class="px-4 py-3 hidden md:table-cell text-slate-600">${p.categoria || '-'}</td>
+          <td class="px-4 py-3 hidden lg:table-cell text-slate-600">${p.medida || '-'}</td>
+          <td class="px-4 py-3 text-right font-medium">R$ ${Number(p.venda).toFixed(2)}</td>
+          <td class="px-4 py-3 text-center">
+            <span class="${p.estoque <= 20 ? 'text-amber-600 font-bold' : 'text-slate-700'}">${p.estoque}</span>
+          </td>
+          <td class="px-4 py-3 hidden xl:table-cell text-slate-600">${p.local || '-'}</td>
+          <td class="px-4 py-3 text-center">
+            <button onclick="editarProduto(${p.id})" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
+            <button onclick="excluirProduto(${p.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filtrarProdutos() {
+      renderProdutos(document.getElementById('busca-produto').value);
+    }
+
+    function abrirModalProduto(produto = null) {
+      document.getElementById('modal-produto').classList.remove('hidden');
+      document.getElementById('modal-produto-titulo').textContent = produto ? 'Editar Produto' : 'Novo Produto';
+      document.getElementById('produto-id').value = produto ? produto.id : '';
+      document.getElementById('produto-nome').value = produto ? produto.nome : '';
+      document.getElementById('produto-categoria').value = produto ? produto.categoria || '' : '';
+      document.getElementById('produto-medida').value = produto ? produto.medida || '' : '';
+      document.getElementById('produto-codigo').value = produto ? produto.codigo : '';
+      document.getElementById('produto-compra').value = produto ? produto.compra : 0;
+      document.getElementById('produto-venda').value = produto ? produto.venda : '';
+      document.getElementById('produto-estoque').value = produto ? produto.estoque : 0;
+      document.getElementById('produto-local').value = produto ? produto.local || '' : '';
+    }
+
+    function fecharModalProduto() {
+      document.getElementById('modal-produto').classList.add('hidden');
+    }
+
+    function salvarProduto(e) {
+      e.preventDefault();
+      const produtos = getProdutos();
+      const id = document.getElementById('produto-id').value;
+      const dados = {
+        nome: document.getElementById('produto-nome').value.trim(),
+        categoria: document.getElementById('produto-categoria').value.trim(),
+        medida: document.getElementById('produto-medida').value.trim(),
+        codigo: document.getElementById('produto-codigo').value.trim().toUpperCase(),
+        compra: parseFloat(document.getElementById('produto-compra').value) || 0,
+        venda: parseFloat(document.getElementById('produto-venda').value),
+        estoque: parseInt(document.getElementById('produto-estoque').value) || 0,
+        local: document.getElementById('produto-local').value.trim()
+      };
+
+      if (id) {
+        const idx = produtos.findIndex(p => p.id == id);
+        if (idx >= 0) produtos[idx] = { ...produtos[idx], ...dados };
+      } else {
+        dados.id = Date.now();
+        produtos.push(dados);
+      }
+      setProdutos(produtos);
+      fecharModalProduto();
+      renderProdutos();
+      atualizarDashboard();
+    }
+
+    function editarProduto(id) {
+      const p = getProdutos().find(x => x.id === id);
+      if (p) abrirModalProduto(p);
+    }
+
+    function excluirProduto(id) {
+      if (!confirm('Excluir este produto?')) return;
+      setProdutos(getProdutos().filter(p => p.id !== id));
+      renderProdutos();
+      atualizarDashboard();
+    }
+
+    // ==================== VENDA ====================
+    function buscarParaVenda() {
+      const termo = document.getElementById('busca-venda').value.toLowerCase().trim();
+      const container = document.getElementById('resultados-venda');
+      if (!termo) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400"><i class="fas fa-search text-3xl mb-2"></i><p>Digite para pesquisar produtos</p></div>`;
+        return;
+      }
+      const produtos = getProdutos().filter(p =>
+        p.nome.toLowerCase().includes(termo) ||
+        p.codigo.toLowerCase().includes(termo) ||
+        (p.medida || '').toLowerCase().includes(termo) ||
+        (p.categoria || '').toLowerCase().includes(termo)
+      );
+
+      if (produtos.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400"><p>Nenhum produto encontrado</p></div>`;
+        return;
+      }
+
+      container.innerHTML = produtos.map(p => `
+        <div class="flex items-center justify-between p-4 border-b hover:bg-slate-50 cursor-pointer" onclick="adicionarAoCarrinho(${p.id})">
+          <div>
+            <div class="font-medium text-slate-800">${p.nome} <span class="text-slate-500">${p.medida || ''}</span></div>
+            <div class="text-xs text-slate-500">${p.codigo} • Estoque: ${p.estoque} • ${p.local || ''}</div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-green-600">R$ ${Number(p.venda).toFixed(2)}</div>
+            <button class="text-xs text-blue-600 mt-1"><i class="fas fa-plus"></i> Adicionar</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function adicionarAoCarrinho(id) {
+      const produto = getProdutos().find(p => p.id === id);
+      if (!produto) return;
+      if (produto.estoque <= 0) { alert('Produto sem estoque!'); return; }
+
+      const item = carrinho.find(c => c.id === id);
+      if (item) {
+        if (item.qtd >= produto.estoque) { alert('Estoque insuficiente!'); return; }
+        item.qtd++;
+      } else {
+        carrinho.push({ id: produto.id, nome: produto.nome, medida: produto.medida, codigo: produto.codigo, preco: produto.venda, qtd: 1, estoque: produto.estoque });
+      }
+      renderCarrinho();
+    }
+
+    function alterarQtd(id, delta) {
+      const item = carrinho.find(c => c.id === id);
+      if (!item) return;
+      item.qtd += delta;
+      if (item.qtd <= 0) carrinho = carrinho.filter(c => c.id !== id);
+      else if (item.qtd > item.estoque) item.qtd = item.estoque;
+      renderCarrinho();
+    }
+
+    function limparCarrinho() {
+      carrinho = [];
+      document.getElementById('carrinho-desconto').value = 0;
+      document.getElementById('carrinho-observacao').value = '';
+      renderCarrinho();
+    }
+
+    function renderCarrinho() {
+      const container = document.getElementById('itens-carrinho');
+      if (carrinho.length === 0) {
+        container.innerHTML = `<p class="text-slate-400 text-sm text-center py-8">Carrinho vazio</p>`;
+      } else {
+        container.innerHTML = carrinho.map(item => `
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex-1 min-w-0">
+              <div class="font-medium text-sm text-slate-800 truncate">${item.nome} ${item.medida || ''}</div>
+              <div class="text-xs text-slate-500">R$ ${item.preco.toFixed(2)}</div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="alterarQtd(${item.id}, -1)" class="w-7 h-7 rounded bg-slate-100 hover:bg-slate-200 text-sm">-</button>
+              <span class="w-8 text-center text-sm font-medium">${item.qtd}</span>
+              <button onclick="alterarQtd(${item.id}, 1)" class="w-7 h-7 rounded bg-slate-100 hover:bg-slate-200 text-sm">+</button>
+            </div>
+            <div class="text-sm font-medium w-16 text-right">R$ ${(item.preco * item.qtd).toFixed(2)}</div>
+          </div>
+        `).join('');
+      }
+      atualizarTotaisCarrinho();
+    }
+
+    function configurarDesconto() {
+      const aviso = document.getElementById('aviso-desconto');
+      if (usuarioAtual.tipo === 'vendedor') {
+        aviso.classList.remove('hidden');
+        aviso.textContent = 'Máx. 5%';
+      } else {
+        aviso.classList.add('hidden');
+      }
+    }
+
+    function validarDesconto() {
+      const input = document.getElementById('carrinho-desconto');
+      let percentual = parseFloat(input.value) || 0;
+
+      if (usuarioAtual.tipo === 'vendedor' && percentual > 5) {
+        percentual = 5;
+        input.value = 5;
+        alert('Vendedores só podem dar no máximo 5% de desconto.');
+      }
+
+      if (percentual < 0) {
+        percentual = 0;
+        input.value = 0;
+      }
+
+      atualizarTotaisCarrinho();
+    }
+
+    function atualizarTotaisCarrinho() {
+      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
+      let percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
+
+      if (usuarioAtual && usuarioAtual.tipo === 'vendedor' && percentual > 5) {
+        percentual = 5;
+        document.getElementById('carrinho-desconto').value = 5;
+      }
+
+      const descontoValor = subtotal * (percentual / 100);
+      const total = Math.max(0, subtotal - descontoValor);
+
+      document.getElementById('carrinho-subtotal').textContent = `R$ ${subtotal.toFixed(2)}`;
+      document.getElementById('carrinho-total').textContent = `R$ ${total.toFixed(2)}`;
+    }
+
+    function imprimirNota() {
+      if (carrinho.length === 0) {
+        alert('Carrinho vazio! Adicione produtos antes de imprimir a nota.');
+        return;
+      }
+
+      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
+      const percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
+      const descontoValor = subtotal * (percentual / 100);
+      const total = Math.max(0, subtotal - descontoValor);
+      const observacao = document.getElementById('carrinho-observacao').value.trim();
+      const agora = new Date();
+
+      document.getElementById('nota-numero').textContent = String(Date.now()).slice(-6);
+      document.getElementById('nota-data').textContent = agora.toLocaleString('pt-BR');
+      document.getElementById('nota-vendedor').textContent = usuarioAtual.nome;
+
+      document.getElementById('nota-itens').innerHTML = carrinho.map(item => `
+        <tr>
+          <td class="py-1">${item.nome} ${item.medida || ''}<br><span class="text-slate-500">${item.codigo}</span></td>
+          <td class="text-center py-1">${item.qtd}</td>
+          <td class="text-right py-1">R$ ${(item.preco * item.qtd).toFixed(2)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('nota-subtotal').textContent = `R$ ${subtotal.toFixed(2)}`;
+      document.getElementById('nota-desconto').textContent = percentual > 0 ? `${percentual}% (R$ ${descontoValor.toFixed(2)})` : 'R$ 0,00';
+      document.getElementById('nota-total').textContent = `R$ ${total.toFixed(2)}`;
+
+      const obsContainer = document.getElementById('nota-obs-container');
+      const obsTexto = document.getElementById('nota-observacao');
+      if (observacao) {
+        obsTexto.textContent = observacao;
+        obsContainer.classList.remove('hidden');
+      } else {
+        obsContainer.classList.add('hidden');
+      }
+
+      document.getElementById('nota-impressao').classList.remove('hidden');
+    }
+
+    function fecharNota() {
+      document.getElementById('nota-impressao').classList.add('hidden');
+    }
+
+    function salvarOrcamento() {
+      if (carrinho.length === 0) { alert('Carrinho vazio!'); return; }
+      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
+      const percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
+      const descontoValor = subtotal * (percentual / 100);
+      const observacao = document.getElementById('carrinho-observacao').value.trim();
+
+      const orcamentos = getOrcamentos();
+      const novo = {
+        id: Date.now(),
+        data: new Date().toISOString(),
+        vendedor: usuarioAtual.nome,
+        itens: [...carrinho],
+        subtotal,
+        descontoPercentual: percentual,
+        descontoValor,
+        observacao,
+        total: Math.max(0, subtotal - descontoValor)
+      };
+      orcamentos.unshift(novo);
+      setOrcamentos(orcamentos);
+      alert('Orçamento salvo com sucesso!');
+      limparCarrinho();
+      atualizarDashboard();
+    }
+
+    function renderOrcamentos() {
+      const lista = getOrcamentos();
+      const tbody = document.getElementById('lista-orcamentos');
+      const sem = document.getElementById('sem-orcamentos');
+      if (lista.length === 0) {
+        tbody.innerHTML = '';
+        sem.classList.remove('hidden');
+        return;
+      }
+      sem.classList.add('hidden');
+      tbody.innerHTML = lista.map(o => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="px-4 py-3 font-medium">#${String(o.id).slice(-6)}</td>
+          <td class="px-4 py-3">${new Date(o.data).toLocaleString('pt-BR')}</td>
+          <td class="px-4 py-3">${o.vendedor}</td>
+          <td class="px-4 py-3 text-right font-medium">R$ ${o.total.toFixed(2)}</td>
+          <td class="px-4 py-3 text-center">${o.itens.length}</td>
+          <td class="px-4 py-3 text-center">
+            <button onclick="carregarOrcamento(${o.id})" class="text-blue-600 hover:text-blue-800 text-sm mr-2">Carregar</button>
+            <button onclick="excluirOrcamento(${o.id})" class="text-red-500 hover:text-red-700 text-sm">Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function carregarOrcamento(id) {
+      const o = getOrcamentos().find(x => x.id === id);
+      if (!o) return;
+      carrinho = o.itens.map(i => ({ ...i }));
+      document.getElementById('carrinho-desconto').value = o.descontoPercentual || 0;
+      document.getElementById('carrinho-observacao').value = o.observacao || '';
+      mostrarTela('venda');
+      renderCarrinho();
+    }
+
+    function excluirOrcamento(id) {
+      if (!confirm('Excluir orçamento?')) return;
+      setOrcamentos(getOrcamentos().filter(o => o.id !== id));
+      renderOrcamentos();
+      atualizarDashboard();
+    }
+
+    function abrirModalFecharVenda() {
+      if (carrinho.length === 0) { alert('Carrinho vazio!'); return; }
+      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
+      const percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
+      const total = Math.max(0, subtotal - (subtotal * percentual / 100));
+      document.getElementById('modal-total-venda').textContent = `R$ ${total.toFixed(2)}`;
+      pagamentoSelecionado = null;
+      document.querySelectorAll('.pagamento-btn').forEach(b => b.classList.remove('border-blue-500', 'bg-blue-50'));
+      document.getElementById('btn-confirmar-venda').disabled = true;
+      document.getElementById('modal-fechar-venda').classList.remove('hidden');
+    }
+
+    function fecharModalFecharVenda() {
+      document.getElementById('modal-fechar-venda').classList.add('hidden');
+    }
+
+    function selecionarPagamento(tipo) {
+      pagamentoSelecionado = tipo;
+      document.querySelectorAll('.pagamento-btn').forEach(b => {
+        b.classList.remove('border-blue-500', 'bg-blue-50');
+        if (b.textContent.trim() === tipo) b.classList.add('border-blue-500', 'bg-blue-50');
+      });
+      document.getElementById('btn-confirmar-venda').disabled = false;
+    }
+
+    function confirmarVenda() {
+      if (!pagamentoSelecionado) return;
+
+      const produtos = getProdutos();
+      for (const item of carrinho) {
+        const p = produtos.find(x => x.id === item.id);
+        if (p) p.estoque = Math.max(0, p.estoque - item.qtd);
+      }
+      setProdutos(produtos);
+
+      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
+      const percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
+      const descontoValor = subtotal * (percentual / 100);
+      const total = Math.max(0, subtotal - descontoValor);
+      const observacao = document.getElementById('carrinho-observacao').value.trim();
+
+      let lucro = 0;
+      carrinho.forEach(item => {
+        const p = produtos.find(x => x.id === item.id);
+        if (p) lucro += (item.preco - (p.compra || 0)) * item.qtd;
+      });
+      lucro -= descontoValor;
+
+      const venda = {
+        id: Date.now(),
+        data: new Date().toISOString(),
+        vendedor: usuarioAtual.nome,
+        vendedorLogin: usuarioAtual.login,
+        itens: [...carrinho],
+        subtotal,
+        descontoPercentual: percentual,
+        descontoValor,
+        observacao,
+        total,
+        lucro: Math.max(0, lucro),
+        pagamento: pagamentoSelecionado
+      };
+
+      const vendas = getVendas();
+      vendas.unshift(venda);
+      setVendas(vendas);
+
+      alert(`Venda finalizada!\nTotal: R$ ${total.toFixed(2)}\nPagamento: ${pagamentoSelecionado}`);
+      limparCarrinho();
+      fecharModalFecharVenda();
+      atualizarDashboard();
+    }
+
+    // ==================== VENDEDORES DETALHADO (NOVA FUNÇÃO) ====================
+    function renderVendedoresDetalhado() {
+      const container = document.getElementById('lista-vendedores-detalhada');
+      const usuarios = getUsuarios();
+      const vendas = getVendas();
+
+      // Filtra apenas vendedores
+      const vendedores = Object.entries(usuarios)
+        .filter(([_, u]) => u.tipo === 'vendedor')
+        .map(([login, u]) => ({ login, ...u }));
+
+      if (vendedores.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-500">
+            <i class="fas fa-users text-4xl mb-3 text-slate-300"></i>
+            <p>Nenhum vendedor cadastrado</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = vendedores.map(vendedor => {
+        // Vendas deste vendedor
+        const vendasVendedor = vendas.filter(v => v.vendedorLogin === vendedor.login || v.vendedor === vendedor.nome);
+        const totalVendido = vendasVendedor.reduce((s, v) => s + v.total, 0);
+        const qtdVendas = vendasVendedor.length;
+
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Cabeçalho do vendedor -->
+            <div class="bg-slate-50 px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-indigo-600 text-lg"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-slate-800 text-lg">${vendedor.nome}</h3>
+                  <p class="text-sm text-slate-500">Login: ${vendedor.login}</p>
+                </div>
+              </div>
+              <div class="flex gap-6 text-sm">
+                <div class="text-center">
+                  <p class="text-slate-500">Total vendido</p>
+                  <p class="font-bold text-green-600 text-lg">R$ ${totalVendido.toFixed(2)}</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-slate-500">Qtd. vendas</p>
+                  <p class="font-bold text-slate-800 text-lg">${qtdVendas}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista de vendas do vendedor -->
+            <div class="p-4">
+              ${qtdVendas === 0 ? `
+                <p class="text-center text-slate-400 py-6">Nenhuma venda realizada ainda</p>
+              ` : `
+                <div class="space-y-4">
+                  ${vendasVendedor.map(venda => `
+                    <div class="border border-slate-200 rounded-xl p-4">
+                      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div class="text-sm">
+                          <span class="font-medium text-slate-700">${new Date(venda.data).toLocaleString('pt-BR')}</span>
+                          <span class="mx-2 text-slate-300">|</span>
+                          <span class="text-slate-500">${venda.pagamento}</span>
+                          ${venda.observacao ? `<span class="mx-2 text-slate-300">|</span><span class="text-slate-500 text-xs">${venda.observacao}</span>` : ''}
+                        </div>
+                        <div class="font-bold text-green-600">R$ ${venda.total.toFixed(2)}</div>
+                      </div>
+                      
+                      <!-- Itens da venda -->
+                      <div class="bg-slate-50 rounded-lg p-3">
+                        <p class="text-xs font-semibold text-slate-500 mb-2">Itens da venda:</p>
+                        <div class="space-y-1">
+                          ${venda.itens.map(item => `
+                            <div class="flex justify-between text-sm">
+                              <span class="text-slate-700">${item.qtd}x ${item.nome} ${item.medida || ''} <span class="text-slate-400">(${item.codigo})</span></span>
+                              <span class="font-medium">R$ ${(item.preco * item.qtd).toFixed(2)}</span>
+                            </div>
+                          `).join('')}
+                        </div>
+                        ${venda.descontoPercentual > 0 ? `
+                          <div class="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-500">
+                            Desconto: ${venda.descontoPercentual}% (R$ ${(venda.descontoValor || 0).toFixed(2)})
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderCaixa() {
+      const hoje = new Date().toDateString();
+      const vendasHoje = getVendas().filter(v => new Date(v.data).toDateString() === hoje);
+
+      const total = vendasHoje.reduce((s, v) => s + v.total, 0);
+      const lucro = vendasHoje.reduce((s, v) => s + (v.lucro || 0), 0);
+
+      document.getElementById('rel-total-hoje').textContent = `R$ ${total.toFixed(2)}`;
+      document.getElementById('rel-lucro').textContent = `R$ ${lucro.toFixed(2)}`;
+      document.getElementById('rel-qtd-vendas').textContent = vendasHoje.length;
+      document.getElementById('rel-estoque-baixo').textContent = getProdutos().filter(p => p.estoque <= 20).length;
+
+      const pagamentos = {};
+      vendasHoje.forEach(v => {
+        pagamentos[v.pagamento] = (pagamentos[v.pagamento] || 0) + v.total;
+      });
+      document.getElementById('rel-pagamentos').innerHTML = Object.keys(pagamentos).length
+        ? Object.entries(pagamentos).map(([k, v]) => `
+            <div class="flex justify-between"><span>${k}</span><span class="font-medium">R$ ${v.toFixed(2)}</span></div>
+          `).join('')
+        : '<p class="text-slate-400">Nenhuma venda hoje</p>';
+
+      const porVendedor = {};
+      vendasHoje.forEach(v => {
+        porVendedor[v.vendedor] = (porVendedor[v.vendedor] || 0) + v.total;
+      });
+      document.getElementById('rel-vendedores').innerHTML = Object.keys(porVendedor).length
+        ? Object.entries(porVendedor).map(([k, v]) => `
+            <div class="flex justify-between"><span>${k}</span><span class="font-medium">R$ ${v.toFixed(2)}</span></div>
+          `).join('')
+        : '<p class="text-slate-400">Nenhuma venda hoje</p>';
+
+      document.getElementById('lista-vendas').innerHTML = vendasHoje.slice(0, 20).map(v => `
+        <tr class="border-b">
+          <td class="px-3 py-2">${new Date(v.data).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</td>
+          <td class="px-3 py-2">${v.vendedor}</td>
+          <td class="px-3 py-2">${v.pagamento}</td>
+          <td class="px-3 py-2 text-right font-medium">R$ ${v.total.toFixed(2)}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="4" class="px-3 py-6 text-center text-slate-400">Nenhuma venda hoje</td></tr>';
+    }
+
+    function renderVendedores() {
+      const usuarios = getUsuarios();
+      document.getElementById('lista-vendedores').innerHTML = Object.entries(usuarios)
+        .filter(([_, u]) => u.tipo === 'vendedor')
+        .map(([login, u]) => `
+          <div class="flex justify-between items-center py-2 border-b">
+            <div>
+              <div class="font-medium">${u.nome}</div>
+              <div class="text-xs text-slate-500">${login}</div>
+            </div>
+            <button onclick="removerVendedor('${login}')" class="text-red-500 text-sm">Remover</button>
+          </div>
+        `).join('') || '<p class="text-slate-400">Nenhum vendedor extra</p>';
+    }
+
+    function adicionarVendedor() {
+      const login = document.getElementById('novo-user').value.trim().toLowerCase();
+      const nome = document.getElementById('novo-nome').value.trim();
+      const senha = document.getElementById('novo-senha').value;
+      if (!login || !nome || !senha) { alert('Preencha todos os campos'); return; }
+      const usuarios = getUsuarios();
+      if (usuarios[login]) { alert('Usuário já existe'); return; }
+      usuarios[login] = { senha, nome, tipo: 'vendedor' };
+      setUsuarios(usuarios);
+      document.getElementById('novo-user').value = '';
+      document.getElementById('novo-nome').value = '';
+      document.getElementById('novo-senha').value = '';
+      renderVendedores();
+      alert('Vendedor adicionado!');
+    }
+
+    function removerVendedor(login) {
+      if (!confirm('Remover este vendedor?')) return;
+      const usuarios = getUsuarios();
+      delete usuarios[login];
+      setUsuarios(usuarios);
+      renderVendedores();
+    }
+
+    function atualizarDashboard() {
+      const produtos = getProdutos();
+      const hoje = new Date().toDateString();
+      const vendasHoje = getVendas().filter(v => new Date(v.data).toDateString() === hoje);
+      const totalHoje = vendasHoje.reduce((s, v) => s + v.total, 0);
+
+      if (usuarioAtual.tipo === 'admin') {
+        document.getElementById('dash-vendas-hoje').textContent = `R$ ${totalHoje.toFixed(2)}`;
+      } else {
+        document.getElementById('dash-vendas-hoje').textContent = '••••';
+      }
+
+      document.getElementById('dash-total-produtos').textContent = produtos.length;
+      document.getElementById('dash-estoque-baixo').textContent = produtos.filter(p => p.estoque <= 20).length;
+      document.getElementById('dash-orcamentos').textContent = getOrcamentos().length;
+    }
+
+    init();
+    window.onload = () => {
+      const salvo = localStorage.getItem('usuarioLogado');
+      if (salvo) {
+        usuarioAtual = JSON.parse(salvo);
+        mostrarApp();
+      }
+    };
+    document.getElementById('login-pass').addEventListener('keypress', e => {
+      if (e.key === 'Enter') fazerLogin();
+    });
+  </script>
+</body>
+</html>
