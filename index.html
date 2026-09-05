@@ -6,6 +6,7 @@
   <title>Sistema Loja - Parafusos & Ferragens</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -63,6 +64,7 @@
           <p class="font-semibold text-slate-700 mb-2">Usuários de teste:</p>
           <p><span class="font-medium">Admin:</span> admin / 1234</p>
           <p><span class="font-medium">Gerente:</span> gerente / 1234</p>
+          <p><span class="font-medium">Caixa:</span> caixa / 1234</p>
           <p><span class="font-medium">Vendedor:</span> joao / 1234</p>
           <p><span class="font-medium">Vendedor:</span> maria / 1234</p>
         </div>
@@ -105,7 +107,8 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <div onclick="mostrarTela('venda')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <!-- Nova Venda - Vendedor, Gerente, Admin -->
+        <div id="card-venda" onclick="mostrarTela('venda')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
           <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
             <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
           </div>
@@ -113,7 +116,16 @@
           <p class="text-slate-500 text-sm mt-1">Pesquise rápido e monte o carrinho</p>
         </div>
 
-        <div onclick="mostrarTela('orcamentos')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <!-- Fechar Venda (Caixa) - só Caixa e Admin -->
+        <div id="card-caixa-venda" onclick="mostrarTela('caixa-venda')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
+          <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-barcode text-emerald-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Fechar Venda (Caixa)</h3>
+          <p class="text-slate-500 text-sm mt-1">Ler código de barras e finalizar</p>
+        </div>
+
+        <div id="card-orcamentos" onclick="mostrarTela('orcamentos')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
           <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
             <i class="fas fa-file-invoice text-amber-600 text-xl"></i>
           </div>
@@ -121,7 +133,7 @@
           <p class="text-slate-500 text-sm mt-1">Salvar e recuperar orçamentos</p>
         </div>
 
-        <div onclick="mostrarTela('produtos')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <div id="card-produtos" onclick="mostrarTela('produtos')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
           <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
             <i class="fas fa-boxes-stacked text-purple-600 text-xl"></i>
           </div>
@@ -145,7 +157,6 @@
           <p class="text-slate-500 text-sm mt-1">Vendas, lucro e estoque baixo</p>
         </div>
 
-        <!-- NOVO: Relatório Mensal (só Admin) -->
         <div id="card-mensal" onclick="mostrarTela('mensal')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
           <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mb-4">
             <i class="fas fa-calendar-alt text-teal-600 text-xl"></i>
@@ -230,7 +241,7 @@
       </div>
     </main>
 
-    <!-- ========== VENDA ========== -->
+    <!-- ========== VENDA (Vendedor / Gerente) ========== -->
     <main id="tela-venda" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -290,21 +301,87 @@
               <span>Total</span>
               <span id="carrinho-total" class="text-green-600">R$ 0,00</span>
             </div>
+
             <div class="grid grid-cols-1 gap-2">
+              <!-- Só imprime a nota (gera código de barras) -->
               <button onclick="imprimirNota()" class="bg-slate-700 hover:bg-slate-800 text-white py-2.5 rounded-xl text-sm font-medium">
-                <i class="fas fa-print mr-1"></i> Imprimir Nota para o Caixa
+                <i class="fas fa-print mr-1"></i> Imprimir Nota (Código de Barras)
               </button>
-              <div class="grid grid-cols-2 gap-2">
-                <button onclick="salvarOrcamento()" class="bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl text-sm font-medium">
-                  <i class="fas fa-file-invoice mr-1"></i> Orçamento
-                </button>
-                <button onclick="abrirModalFecharVenda()" class="bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-medium">
-                  <i class="fas fa-check mr-1"></i> Fechar Venda
-                </button>
-              </div>
+              <button onclick="salvarOrcamento()" class="bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl text-sm font-medium">
+                <i class="fas fa-file-invoice mr-1"></i> Salvar Orçamento
+              </button>
             </div>
           </div>
         </div>
+      </div>
+    </main>
+
+    <!-- ========== FECHAR VENDA (CAIXA) ========== -->
+    <main id="tela-caixa-venda" class="hidden max-w-3xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="mb-6">
+        <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <h2 class="text-2xl font-bold text-slate-800">Fechar Venda (Caixa)</h2>
+        <p class="text-slate-500 text-sm">Digite ou leia o código de barras da nota</p>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+        <label class="block text-sm font-medium text-slate-700 mb-2">Código da Nota</label>
+        <div class="flex gap-3">
+          <input id="codigo-nota" type="text" placeholder="Digite o código ou use o leitor"
+            class="flex-1 px-4 py-3 border border-slate-300 rounded-xl text-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+            onkeypress="if(event.key==='Enter') buscarNotaPorCodigo()">
+          <button onclick="buscarNotaPorCodigo()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium">
+            <i class="fas fa-search mr-1"></i> Buscar
+          </button>
+        </div>
+      </div>
+
+      <!-- Detalhes da nota encontrada -->
+      <div id="detalhes-nota-caixa" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <p class="text-sm text-slate-500">Nota Nº</p>
+            <p class="text-xl font-bold text-slate-800" id="cx-nota-numero"></p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-slate-500">Vendedor</p>
+            <p class="font-medium text-slate-800" id="cx-nota-vendedor"></p>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <p class="text-sm text-slate-500 mb-2">Itens</p>
+          <div id="cx-nota-itens" class="space-y-2 text-sm border rounded-xl p-3 bg-slate-50"></div>
+        </div>
+
+        <div class="space-y-1 text-sm mb-4">
+          <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span id="cx-nota-subtotal"></span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Desconto</span><span id="cx-nota-desconto"></span></div>
+          <div class="flex justify-between text-lg font-bold"><span>Total</span><span class="text-green-600" id="cx-nota-total"></span></div>
+        </div>
+
+        <div id="cx-nota-obs" class="hidden mb-4 p-3 bg-amber-50 rounded-xl text-sm">
+          <p class="font-medium text-amber-800 mb-1">Observação:</p>
+          <p id="cx-nota-observacao" class="text-amber-700"></p>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-slate-700 mb-2">Forma de pagamento</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="selecionarPagamentoCaixa('Pix')" class="pagamento-caixa-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-emerald-500">Pix</button>
+            <button onclick="selecionarPagamentoCaixa('Dinheiro')" class="pagamento-caixa-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-emerald-500">Dinheiro</button>
+            <button onclick="selecionarPagamentoCaixa('Débito')" class="pagamento-caixa-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-emerald-500">Débito</button>
+            <button onclick="selecionarPagamentoCaixa('Crédito')" class="pagamento-caixa-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-emerald-500">Crédito</button>
+            <button onclick="selecionarPagamentoCaixa('Fiado')" class="pagamento-caixa-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-emerald-500 col-span-2">Fiado</button>
+          </div>
+        </div>
+
+        <button onclick="confirmarVendaCaixa()" id="btn-confirmar-caixa" disabled
+          class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white py-3.5 rounded-xl font-semibold text-lg">
+          <i class="fas fa-check mr-2"></i> Confirmar e Fechar Venda
+        </button>
       </div>
     </main>
 
@@ -349,22 +426,19 @@
           <i class="fas fa-arrow-left"></i> Voltar
         </button>
         <h2 class="text-2xl font-bold text-slate-800">Vendedores</h2>
-        <p class="text-slate-500 text-sm">Desempenho detalhado de cada vendedor</p>
       </div>
       <div id="lista-vendedores-detalhada" class="space-y-6"></div>
     </main>
 
-    <!-- ========== RELATÓRIO MENSAL (NOVA TELA) ========== -->
+    <!-- ========== RELATÓRIO MENSAL ========== -->
     <main id="tela-mensal" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
       <div class="mb-6">
         <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
           <i class="fas fa-arrow-left"></i> Voltar
         </button>
         <h2 class="text-2xl font-bold text-slate-800">Relatório Mensal</h2>
-        <p class="text-slate-500 text-sm">Acompanhe o desempenho do mês e o histórico</p>
       </div>
 
-      <!-- Cards do mês atual -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
         <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
           <p class="text-sm text-slate-500 font-medium mb-1">Total vendido no mês</p>
@@ -374,30 +448,24 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
           <p class="text-sm text-slate-500 font-medium mb-1">Lucro estimado do mês</p>
           <p class="text-3xl font-bold text-green-600" id="mensal-lucro">R$ 0,00</p>
-          <p class="text-xs text-slate-400 mt-2">Baseado no preço de compra</p>
         </div>
       </div>
 
-      <!-- Botão Zerar -->
       <div class="mb-8">
         <button onclick="zerarMesAtual()" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
           <i class="fas fa-redo"></i> Zerar Mês Atual
         </button>
-        <p class="text-xs text-slate-500 mt-2">Ao zerar, o valor atual será salvo no histórico e o contador recomeça do zero.</p>
       </div>
 
-      <!-- Histórico de meses anteriores -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b bg-slate-50">
           <h3 class="font-bold text-slate-800">Histórico de Meses Anteriores</h3>
         </div>
-        <div id="historico-mensal" class="p-4">
-          <!-- Preenchido via JS -->
-        </div>
+        <div id="historico-mensal" class="p-4"></div>
       </div>
     </main>
 
-    <!-- ========== CAIXA ========== -->
+    <!-- ========== CAIXA RELATÓRIOS ========== -->
     <main id="tela-caixa" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
       <div class="mb-6">
         <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
@@ -463,7 +531,6 @@
           <i class="fas fa-arrow-left"></i> Voltar
         </button>
         <h2 class="text-2xl font-bold text-slate-800">Configurações</h2>
-        <p class="text-slate-500 text-sm">Gerenciar usuários do sistema</p>
       </div>
 
       <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-lg">
@@ -478,6 +545,7 @@
             <select id="novo-tipo" class="w-full px-4 py-2.5 border rounded-xl">
               <option value="vendedor">Vendedor</option>
               <option value="gerente">Gerente</option>
+              <option value="caixa">Caixa</option>
             </select>
           </div>
 
@@ -549,45 +617,21 @@
     </div>
   </div>
 
-  <!-- MODAL FECHAR VENDA -->
-  <div id="modal-fechar-venda" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 no-print">
-    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl">
-      <div class="px-6 py-4 border-b flex items-center justify-between">
-        <h3 class="text-lg font-bold text-slate-800">Fechar Venda</h3>
-        <button onclick="fecharModalFecharVenda()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
-      </div>
-      <div class="p-6 space-y-4">
-        <div class="text-center">
-          <p class="text-slate-500 text-sm">Total a pagar</p>
-          <p class="text-3xl font-bold text-green-600" id="modal-total-venda">R$ 0,00</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-2">Forma de pagamento</label>
-          <div class="grid grid-cols-2 gap-2">
-            <button onclick="selecionarPagamento('Pix')" class="pagamento-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-blue-500">Pix</button>
-            <button onclick="selecionarPagamento('Dinheiro')" class="pagamento-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-blue-500">Dinheiro</button>
-            <button onclick="selecionarPagamento('Débito')" class="pagamento-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-blue-500">Débito</button>
-            <button onclick="selecionarPagamento('Crédito')" class="pagamento-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-blue-500">Crédito</button>
-            <button onclick="selecionarPagamento('Fiado')" class="pagamento-btn border-2 border-slate-200 rounded-xl py-3 text-sm font-medium hover:border-blue-500 col-span-2">Fiado</button>
-          </div>
-        </div>
-        <button onclick="confirmarVenda()" id="btn-confirmar-venda" disabled
-          class="w-full bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white py-3 rounded-xl font-semibold">
-          Confirmar Venda
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- NOTA PARA IMPRESSÃO -->
+  <!-- ========== NOTA PARA IMPRESSÃO (com código de barras) ========== -->
   <div id="nota-impressao" class="hidden fixed inset-0 bg-white z-50 p-6 overflow-auto">
     <div class="max-w-sm mx-auto border border-slate-300 p-4">
-      <div class="text-center mb-4">
+      <div class="text-center mb-3">
         <h2 class="text-lg font-bold">LOJA DE PARAFUSOS & FERRAGENS</h2>
         <p class="text-xs text-slate-600">Nota para pagamento no Caixa</p>
       </div>
+
+      <!-- Código de barras -->
+      <div class="text-center my-4">
+        <svg id="barcode"></svg>
+        <p class="text-sm font-mono font-bold mt-1" id="nota-codigo-texto"></p>
+      </div>
+
       <div class="text-xs mb-3 space-y-1">
-        <p><strong>Nº:</strong> <span id="nota-numero"></span></p>
         <p><strong>Data:</strong> <span id="nota-data"></span></p>
         <p><strong>Vendedor:</strong> <span id="nota-vendedor"></span></p>
       </div>
@@ -615,8 +659,8 @@
       </div>
 
       <hr class="my-3 border-slate-300">
-      <p class="text-center text-xs text-slate-500">Apresente esta nota no caixa para pagamento</p>
-      <p class="text-center text-xs mt-4">Obrigado pela preferência!</p>
+      <p class="text-center text-xs text-slate-500 font-medium">Apresente esta nota no CAIXA</p>
+      <p class="text-center text-xs mt-2">Obrigado pela preferência!</p>
     </div>
     <div class="max-w-sm mx-auto mt-6 flex gap-3 no-print">
       <button onclick="window.print()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium">
@@ -630,18 +674,19 @@
     let usuarioAtual = null;
     let carrinho = [];
     let pagamentoSelecionado = null;
+    let notaAtualCaixa = null;
+    let pagamentoCaixa = null;
 
     const usuariosPadrao = {
       admin:   { senha: '1234', nome: 'Administrador', tipo: 'admin' },
       gerente: { senha: '1234', nome: 'Carlos Gerente', tipo: 'gerente' },
+      caixa:   { senha: '1234', nome: 'Ana Caixa', tipo: 'caixa' },
       joao:    { senha: '1234', nome: 'João Silva', tipo: 'vendedor' },
       maria:   { senha: '1234', nome: 'Maria Santos', tipo: 'vendedor' }
     };
 
     function init() {
-      if (!localStorage.getItem('usuarios')) {
-        localStorage.setItem('usuarios', JSON.stringify(usuariosPadrao));
-      }
+      if (!localStorage.getItem('usuarios')) localStorage.setItem('usuarios', JSON.stringify(usuariosPadrao));
       if (!localStorage.getItem('produtos')) {
         const exemplos = [
           { id: 1, nome: 'Parafuso Sextavado', categoria: 'Parafuso', medida: 'M6 x 30', codigo: 'PAR-M6-30', compra: 0.15, venda: 0.45, estoque: 500, local: 'Gaveta A-12' },
@@ -654,6 +699,7 @@
       }
       if (!localStorage.getItem('vendas')) localStorage.setItem('vendas', '[]');
       if (!localStorage.getItem('orcamentos')) localStorage.setItem('orcamentos', '[]');
+      if (!localStorage.getItem('notasPendentes')) localStorage.setItem('notasPendentes', '[]');
       if (!localStorage.getItem('historicoMensal')) localStorage.setItem('historicoMensal', '[]');
       if (!localStorage.getItem('ultimoZeroMensal')) localStorage.setItem('ultimoZeroMensal', '0');
     }
@@ -666,6 +712,8 @@
     function setOrcamentos(o) { localStorage.setItem('orcamentos', JSON.stringify(o)); }
     function getUsuarios() { return JSON.parse(localStorage.getItem('usuarios') || '{}'); }
     function setUsuarios(u) { localStorage.setItem('usuarios', JSON.stringify(u)); }
+    function getNotasPendentes() { return JSON.parse(localStorage.getItem('notasPendentes') || '[]'); }
+    function setNotasPendentes(n) { localStorage.setItem('notasPendentes', JSON.stringify(n)); }
     function getHistoricoMensal() { return JSON.parse(localStorage.getItem('historicoMensal') || '[]'); }
     function setHistoricoMensal(h) { localStorage.setItem('historicoMensal', JSON.stringify(h)); }
     function getUltimoZero() { return parseInt(localStorage.getItem('ultimoZeroMensal') || '0'); }
@@ -699,28 +747,47 @@
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('main-app').classList.remove('hidden');
       
-      const tipoLabel = { admin: 'Admin', gerente: 'Gerente', vendedor: 'Vendedor' };
+      const tipoLabel = { admin: 'Admin', gerente: 'Gerente', vendedor: 'Vendedor', caixa: 'Caixa' };
       document.getElementById('user-info').textContent = `${usuarioAtual.nome} (${tipoLabel[usuarioAtual.tipo] || usuarioAtual.tipo})`;
       document.getElementById('saudacao').textContent = `Olá, ${usuarioAtual.nome.split(' ')[0]}!`;
       
-      const isAdmin = usuarioAtual.tipo === 'admin';
-      
-      document.getElementById('card-caixa').classList.toggle('hidden', !isAdmin);
-      document.getElementById('card-config').classList.toggle('hidden', !isAdmin);
+      const tipo = usuarioAtual.tipo;
+      const isAdmin = tipo === 'admin';
+      const isCaixa = tipo === 'caixa';
+      const isVendedorOuGerente = tipo === 'vendedor' || tipo === 'gerente' || isAdmin;
+
+      // Controle de cards
+      document.getElementById('card-venda').classList.toggle('hidden', isCaixa); // Caixa não monta venda
+      document.getElementById('card-caixa-venda').classList.toggle('hidden', !(isCaixa || isAdmin));
+      document.getElementById('card-orcamentos').classList.toggle('hidden', isCaixa);
+      document.getElementById('card-produtos').classList.toggle('hidden', isCaixa);
       document.getElementById('card-vendedores').classList.toggle('hidden', !isAdmin);
+      document.getElementById('card-caixa').classList.toggle('hidden', !isAdmin);
       document.getElementById('card-mensal').classList.toggle('hidden', !isAdmin);
+      document.getElementById('card-config').classList.toggle('hidden', !isAdmin);
       
       atualizarDashboard();
       mostrarTela('dashboard');
     }
 
     function mostrarTela(tela) {
-      if (['caixa', 'config', 'vendedores', 'mensal'].includes(tela) && usuarioAtual.tipo !== 'admin') {
+      const tipo = usuarioAtual.tipo;
+
+      // Proteções de acesso
+      if (['caixa', 'config', 'vendedores', 'mensal'].includes(tela) && tipo !== 'admin') {
         alert('Acesso restrito ao Administrador.');
         return;
       }
+      if (tela === 'caixa-venda' && tipo !== 'caixa' && tipo !== 'admin') {
+        alert('Acesso restrito ao Caixa.');
+        return;
+      }
+      if (tela === 'venda' && tipo === 'caixa') {
+        alert('Caixa não monta vendas. Use "Fechar Venda".');
+        return;
+      }
 
-      ['dashboard','produtos','venda','orcamentos','caixa','config','vendedores','mensal'].forEach(t => {
+      ['dashboard','produtos','venda','orcamentos','caixa','config','vendedores','mensal','caixa-venda'].forEach(t => {
         const el = document.getElementById('tela-' + t);
         if (el) el.classList.add('hidden');
       });
@@ -736,6 +803,13 @@
         renderCarrinho(); 
         configurarDesconto();
       }
+      if (tela === 'caixa-venda') {
+        document.getElementById('codigo-nota').value = '';
+        document.getElementById('detalhes-nota-caixa').classList.add('hidden');
+        notaAtualCaixa = null;
+        pagamentoCaixa = null;
+        setTimeout(() => document.getElementById('codigo-nota').focus(), 100);
+      }
       if (tela === 'orcamentos') renderOrcamentos();
       if (tela === 'caixa') renderCaixa();
       if (tela === 'config') renderUsuarios();
@@ -744,103 +818,205 @@
       if (tela === 'dashboard') atualizarDashboard();
     }
 
-    // ==================== RELATÓRIO MENSAL ====================
-    function getVendasMesAtual() {
-      const agora = new Date();
-      const ano = agora.getFullYear();
-      const mes = agora.getMonth();
-      const ultimoZero = getUltimoZero();
-
-      return getVendas().filter(v => {
-        const dataVenda = new Date(v.data);
-        const depoisDoZero = dataVenda.getTime() > ultimoZero;
-        const mesmoMes = dataVenda.getFullYear() === ano && dataVenda.getMonth() === mes;
-        return depoisDoZero && mesmoMes;
-      });
-    }
-
-    function renderRelatorioMensal() {
-      const vendasMes = getVendasMesAtual();
-      const total = vendasMes.reduce((s, v) => s + v.total, 0);
-      const lucro = vendasMes.reduce((s, v) => s + (v.lucro || 0), 0);
-
-      const agora = new Date();
-      const nomeMes = agora.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-
-      document.getElementById('mensal-total').textContent = `R$ ${total.toFixed(2)}`;
-      document.getElementById('mensal-lucro').textContent = `R$ ${lucro.toFixed(2)}`;
-      document.getElementById('mensal-periodo').textContent = `Período: ${nomeMes}`;
-
-      // Histórico
-      const historico = getHistoricoMensal();
-      const container = document.getElementById('historico-mensal');
-
-      if (historico.length === 0) {
-        container.innerHTML = `<p class="text-center text-slate-400 py-8">Nenhum mês zerado ainda</p>`;
+    // ==================== IMPRIMIR NOTA + GERAR CÓDIGO ====================
+    function imprimirNota() {
+      if (carrinho.length === 0) {
+        alert('Carrinho vazio! Adicione produtos antes de imprimir a nota.');
         return;
       }
 
-      container.innerHTML = `
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-slate-50">
-              <tr>
-                <th class="text-left px-4 py-3 font-semibold text-slate-600">Mês</th>
-                <th class="text-right px-4 py-3 font-semibold text-slate-600">Total Vendido</th>
-                <th class="text-right px-4 py-3 font-semibold text-slate-600">Lucro Estimado</th>
-                <th class="text-left px-4 py-3 font-semibold text-slate-600">Zerado em</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${historico.map(h => `
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="px-4 py-3 font-medium text-slate-800">${h.mesNome}</td>
-                  <td class="px-4 py-3 text-right font-medium">R$ ${h.total.toFixed(2)}</td>
-                  <td class="px-4 py-3 text-right text-green-600 font-medium">R$ ${h.lucro.toFixed(2)}</td>
-                  <td class="px-4 py-3 text-slate-500">${new Date(h.dataZero).toLocaleString('pt-BR')}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
+      const percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
+      const descontoValor = subtotal * (percentual / 100);
+      const total = Math.max(0, subtotal - descontoValor);
+      const observacao = document.getElementById('carrinho-observacao').value.trim();
+      const agora = new Date();
+
+      // Gera código único (8 dígitos)
+      const codigo = String(Date.now()).slice(-8);
+
+      // Salva a nota como pendente
+      const nota = {
+        codigo,
+        data: agora.toISOString(),
+        vendedor: usuarioAtual.nome,
+        vendedorLogin: usuarioAtual.login,
+        itens: [...carrinho],
+        subtotal,
+        descontoPercentual: percentual,
+        descontoValor,
+        observacao,
+        total
+      };
+
+      const pendentes = getNotasPendentes();
+      pendentes.unshift(nota);
+      setNotasPendentes(pendentes);
+
+      // Preenche a nota visual
+      document.getElementById('nota-codigo-texto').textContent = codigo;
+      document.getElementById('nota-data').textContent = agora.toLocaleString('pt-BR');
+      document.getElementById('nota-vendedor').textContent = usuarioAtual.nome;
+
+      document.getElementById('nota-itens').innerHTML = carrinho.map(item => `
+        <tr>
+          <td class="py-1">${item.nome} ${item.medida || ''}<br><span class="text-slate-500">${item.codigo}</span></td>
+          <td class="text-center py-1">${item.qtd}</td>
+          <td class="text-right py-1">R$ ${(item.preco * item.qtd).toFixed(2)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('nota-subtotal').textContent = `R$ ${subtotal.toFixed(2)}`;
+      document.getElementById('nota-desconto').textContent = percentual > 0 ? `${percentual}% (R$ ${descontoValor.toFixed(2)})` : 'R$ 0,00';
+      document.getElementById('nota-total').textContent = `R$ ${total.toFixed(2)}`;
+
+      const obsContainer = document.getElementById('nota-obs-container');
+      if (observacao) {
+        document.getElementById('nota-observacao').textContent = observacao;
+        obsContainer.classList.remove('hidden');
+      } else {
+        obsContainer.classList.add('hidden');
+      }
+
+      // Gera o código de barras
+      try {
+        JsBarcode("#barcode", codigo, {
+          format: "CODE128",
+          width: 2,
+          height: 50,
+          displayValue: false,
+          margin: 5
+        });
+      } catch(e) {
+        console.log('Barcode error', e);
+      }
+
+      document.getElementById('nota-impressao').classList.remove('hidden');
+
+      // Limpa o carrinho depois de gerar a nota
+      limparCarrinho();
+    }
+
+    function fecharNota() {
+      document.getElementById('nota-impressao').classList.add('hidden');
+    }
+
+    // ==================== CAIXA - BUSCAR E FECHAR ====================
+    function buscarNotaPorCodigo() {
+      const codigo = document.getElementById('codigo-nota').value.trim();
+      if (!codigo) {
+        alert('Digite o código da nota.');
+        return;
+      }
+
+      const pendentes = getNotasPendentes();
+      const nota = pendentes.find(n => n.codigo === codigo);
+
+      if (!nota) {
+        alert('Nota não encontrada ou já foi finalizada.');
+        document.getElementById('detalhes-nota-caixa').classList.add('hidden');
+        notaAtualCaixa = null;
+        return;
+      }
+
+      notaAtualCaixa = nota;
+      pagamentoCaixa = null;
+
+      document.getElementById('cx-nota-numero').textContent = nota.codigo;
+      document.getElementById('cx-nota-vendedor').textContent = nota.vendedor;
+
+      document.getElementById('cx-nota-itens').innerHTML = nota.itens.map(item => `
+        <div class="flex justify-between">
+          <span>${item.qtd}x ${item.nome} ${item.medida || ''}</span>
+          <span class="font-medium">R$ ${(item.preco * item.qtd).toFixed(2)}</span>
         </div>
-      `;
-    }
+      `).join('');
 
-    function zerarMesAtual() {
-      const vendasMes = getVendasMesAtual();
-      const total = vendasMes.reduce((s, v) => s + v.total, 0);
-      const lucro = vendasMes.reduce((s, v) => s + (v.lucro || 0), 0);
+      document.getElementById('cx-nota-subtotal').textContent = `R$ ${nota.subtotal.toFixed(2)}`;
+      document.getElementById('cx-nota-desconto').textContent = nota.descontoPercentual > 0 
+        ? `${nota.descontoPercentual}% (R$ ${nota.descontoValor.toFixed(2)})` 
+        : 'R$ 0,00';
+      document.getElementById('cx-nota-total').textContent = `R$ ${nota.total.toFixed(2)}`;
 
-      if (total === 0 && lucro === 0) {
-        alert('Não há valores para zerar neste mês.');
-        return;
+      if (nota.observacao) {
+        document.getElementById('cx-nota-observacao').textContent = nota.observacao;
+        document.getElementById('cx-nota-obs').classList.remove('hidden');
+      } else {
+        document.getElementById('cx-nota-obs').classList.add('hidden');
       }
 
-      if (!confirm(`Deseja zerar o mês atual?\n\nTotal: R$ ${total.toFixed(2)}\nLucro: R$ ${lucro.toFixed(2)}\n\nOs valores serão salvos no histórico.`)) {
-        return;
-      }
-
-      const agora = new Date();
-      const mesNome = agora.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-
-      const historico = getHistoricoMensal();
-      historico.unshift({
-        mesNome: mesNome.charAt(0).toUpperCase() + mesNome.slice(1),
-        total,
-        lucro,
-        dataZero: agora.toISOString(),
-        qtdVendas: vendasMes.length
+      // Reset botões de pagamento
+      document.querySelectorAll('.pagamento-caixa-btn').forEach(b => {
+        b.classList.remove('border-emerald-500', 'bg-emerald-50');
       });
-      setHistoricoMensal(historico);
+      document.getElementById('btn-confirmar-caixa').disabled = true;
 
-      // Marca o momento do zero
-      setUltimoZero(Date.now());
-
-      alert('Mês zerado com sucesso! Os valores foram salvos no histórico.');
-      renderRelatorioMensal();
+      document.getElementById('detalhes-nota-caixa').classList.remove('hidden');
     }
 
-    // ==================== PRODUTOS ====================
+    function selecionarPagamentoCaixa(tipo) {
+      pagamentoCaixa = tipo;
+      document.querySelectorAll('.pagamento-caixa-btn').forEach(b => {
+        b.classList.remove('border-emerald-500', 'bg-emerald-50');
+        if (b.textContent.trim() === tipo) b.classList.add('border-emerald-500', 'bg-emerald-50');
+      });
+      document.getElementById('btn-confirmar-caixa').disabled = false;
+    }
+
+    function confirmarVendaCaixa() {
+      if (!notaAtualCaixa || !pagamentoCaixa) return;
+
+      // Baixa de estoque
+      const produtos = getProdutos();
+      for (const item of notaAtualCaixa.itens) {
+        const p = produtos.find(x => x.id === item.id);
+        if (p) p.estoque = Math.max(0, p.estoque - item.qtd);
+      }
+      setProdutos(produtos);
+
+      // Calcula lucro
+      let lucro = 0;
+      notaAtualCaixa.itens.forEach(item => {
+        const p = produtos.find(x => x.id === item.id);
+        if (p) lucro += (item.preco - (p.compra || 0)) * item.qtd;
+      });
+      lucro -= (notaAtualCaixa.descontoValor || 0);
+
+      // Cria a venda no nome do VENDEDOR original
+      const venda = {
+        id: Date.now(),
+        data: new Date().toISOString(),
+        vendedor: notaAtualCaixa.vendedor,
+        vendedorLogin: notaAtualCaixa.vendedorLogin,
+        itens: notaAtualCaixa.itens,
+        subtotal: notaAtualCaixa.subtotal,
+        descontoPercentual: notaAtualCaixa.descontoPercentual,
+        descontoValor: notaAtualCaixa.descontoValor,
+        observacao: notaAtualCaixa.observacao,
+        total: notaAtualCaixa.total,
+        lucro: Math.max(0, lucro),
+        pagamento: pagamentoCaixa,
+        fechadoPor: usuarioAtual.nome // quem fechou no caixa
+      };
+
+      const vendas = getVendas();
+      vendas.unshift(venda);
+      setVendas(vendas);
+
+      // Remove a nota das pendentes
+      setNotasPendentes(getNotasPendentes().filter(n => n.codigo !== notaAtualCaixa.codigo));
+
+      alert(`Venda finalizada com sucesso!\n\nVendedor: ${notaAtualCaixa.vendedor}\nTotal: R$ ${notaAtualCaixa.total.toFixed(2)}\nPagamento: ${pagamentoCaixa}`);
+
+      // Limpa a tela
+      document.getElementById('codigo-nota').value = '';
+      document.getElementById('detalhes-nota-caixa').classList.add('hidden');
+      notaAtualCaixa = null;
+      pagamentoCaixa = null;
+      atualizarDashboard();
+    }
+
+    // ==================== RESTANTE DAS FUNÇÕES ====================
     function renderProdutos(filtro = '') {
       const produtos = getProdutos();
       const tbody = document.getElementById('lista-produtos');
@@ -889,15 +1065,10 @@
       `).join('');
     }
 
-    function filtrarProdutos() {
-      renderProdutos(document.getElementById('busca-produto').value);
-    }
+    function filtrarProdutos() { renderProdutos(document.getElementById('busca-produto').value); }
 
     function abrirModalProduto(produto = null) {
-      if (!podeGerenciarProdutos()) {
-        alert('Você não tem permissão para cadastrar ou editar produtos.');
-        return;
-      }
+      if (!podeGerenciarProdutos()) { alert('Sem permissão.'); return; }
       document.getElementById('modal-produto').classList.remove('hidden');
       document.getElementById('modal-produto-titulo').textContent = produto ? 'Editar Produto' : 'Novo Produto';
       document.getElementById('produto-id').value = produto ? produto.id : '';
@@ -911,17 +1082,11 @@
       document.getElementById('produto-local').value = produto ? produto.local || '' : '';
     }
 
-    function fecharModalProduto() {
-      document.getElementById('modal-produto').classList.add('hidden');
-    }
+    function fecharModalProduto() { document.getElementById('modal-produto').classList.add('hidden'); }
 
     function salvarProduto(e) {
       e.preventDefault();
-      if (!podeGerenciarProdutos()) {
-        alert('Você não tem permissão para cadastrar ou editar produtos.');
-        return;
-      }
-
+      if (!podeGerenciarProdutos()) return;
       const produtos = getProdutos();
       const id = document.getElementById('produto-id').value;
       const dados = {
@@ -934,7 +1099,6 @@
         estoque: parseInt(document.getElementById('produto-estoque').value) || 0,
         local: document.getElementById('produto-local').value.trim()
       };
-
       if (id) {
         const idx = produtos.findIndex(p => p.id == id);
         if (idx >= 0) produtos[idx] = { ...produtos[idx], ...dados };
@@ -949,26 +1113,19 @@
     }
 
     function editarProduto(id) {
-      if (!podeGerenciarProdutos()) {
-        alert('Você não tem permissão para editar produtos.');
-        return;
-      }
+      if (!podeGerenciarProdutos()) return;
       const p = getProdutos().find(x => x.id === id);
       if (p) abrirModalProduto(p);
     }
 
     function excluirProduto(id) {
-      if (!podeGerenciarProdutos()) {
-        alert('Você não tem permissão para excluir produtos.');
-        return;
-      }
+      if (!podeGerenciarProdutos()) return;
       if (!confirm('Excluir este produto?')) return;
       setProdutos(getProdutos().filter(p => p.id !== id));
       renderProdutos();
       atualizarDashboard();
     }
 
-    // ==================== VENDA ====================
     function buscarParaVenda() {
       const termo = document.getElementById('busca-venda').value.toLowerCase().trim();
       const container = document.getElementById('resultados-venda');
@@ -977,17 +1134,13 @@
         return;
       }
       const produtos = getProdutos().filter(p =>
-        p.nome.toLowerCase().includes(termo) ||
-        p.codigo.toLowerCase().includes(termo) ||
-        (p.medida || '').toLowerCase().includes(termo) ||
-        (p.categoria || '').toLowerCase().includes(termo)
+        p.nome.toLowerCase().includes(termo) || p.codigo.toLowerCase().includes(termo) ||
+        (p.medida || '').toLowerCase().includes(termo) || (p.categoria || '').toLowerCase().includes(termo)
       );
-
       if (produtos.length === 0) {
         container.innerHTML = `<div class="p-8 text-center text-slate-400"><p>Nenhum produto encontrado</p></div>`;
         return;
       }
-
       container.innerHTML = produtos.map(p => `
         <div class="flex items-center justify-between p-4 border-b hover:bg-slate-50 cursor-pointer" onclick="adicionarAoCarrinho(${p.id})">
           <div>
@@ -1004,9 +1157,7 @@
 
     function adicionarAoCarrinho(id) {
       const produto = getProdutos().find(p => p.id === id);
-      if (!produto) return;
-      if (produto.estoque <= 0) { alert('Produto sem estoque!'); return; }
-
+      if (!produto || produto.estoque <= 0) { alert('Produto sem estoque!'); return; }
       const item = carrinho.find(c => c.id === id);
       if (item) {
         if (item.qtd >= produto.estoque) { alert('Estoque insuficiente!'); return; }
@@ -1069,80 +1220,25 @@
     function validarDesconto() {
       const input = document.getElementById('carrinho-desconto');
       let percentual = parseFloat(input.value) || 0;
-
       if (usuarioAtual.tipo === 'vendedor' && percentual > 5) {
         percentual = 5;
         input.value = 5;
         alert('Vendedores só podem dar no máximo 5% de desconto.');
       }
-
-      if (percentual < 0) {
-        percentual = 0;
-        input.value = 0;
-      }
-
+      if (percentual < 0) { percentual = 0; input.value = 0; }
       atualizarTotaisCarrinho();
     }
 
     function atualizarTotaisCarrinho() {
       const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
       let percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
-
       if (usuarioAtual && usuarioAtual.tipo === 'vendedor' && percentual > 5) {
         percentual = 5;
         document.getElementById('carrinho-desconto').value = 5;
       }
-
-      const descontoValor = subtotal * (percentual / 100);
-      const total = Math.max(0, subtotal - descontoValor);
-
+      const total = Math.max(0, subtotal - (subtotal * percentual / 100));
       document.getElementById('carrinho-subtotal').textContent = `R$ ${subtotal.toFixed(2)}`;
       document.getElementById('carrinho-total').textContent = `R$ ${total.toFixed(2)}`;
-    }
-
-    function imprimirNota() {
-      if (carrinho.length === 0) {
-        alert('Carrinho vazio! Adicione produtos antes de imprimir a nota.');
-        return;
-      }
-
-      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
-      const percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
-      const descontoValor = subtotal * (percentual / 100);
-      const total = Math.max(0, subtotal - descontoValor);
-      const observacao = document.getElementById('carrinho-observacao').value.trim();
-      const agora = new Date();
-
-      document.getElementById('nota-numero').textContent = String(Date.now()).slice(-6);
-      document.getElementById('nota-data').textContent = agora.toLocaleString('pt-BR');
-      document.getElementById('nota-vendedor').textContent = usuarioAtual.nome;
-
-      document.getElementById('nota-itens').innerHTML = carrinho.map(item => `
-        <tr>
-          <td class="py-1">${item.nome} ${item.medida || ''}<br><span class="text-slate-500">${item.codigo}</span></td>
-          <td class="text-center py-1">${item.qtd}</td>
-          <td class="text-right py-1">R$ ${(item.preco * item.qtd).toFixed(2)}</td>
-        </tr>
-      `).join('');
-
-      document.getElementById('nota-subtotal').textContent = `R$ ${subtotal.toFixed(2)}`;
-      document.getElementById('nota-desconto').textContent = percentual > 0 ? `${percentual}% (R$ ${descontoValor.toFixed(2)})` : 'R$ 0,00';
-      document.getElementById('nota-total').textContent = `R$ ${total.toFixed(2)}`;
-
-      const obsContainer = document.getElementById('nota-obs-container');
-      const obsTexto = document.getElementById('nota-observacao');
-      if (observacao) {
-        obsTexto.textContent = observacao;
-        obsContainer.classList.remove('hidden');
-      } else {
-        obsContainer.classList.add('hidden');
-      }
-
-      document.getElementById('nota-impressao').classList.remove('hidden');
-    }
-
-    function fecharNota() {
-      document.getElementById('nota-impressao').classList.add('hidden');
     }
 
     function salvarOrcamento() {
@@ -1151,22 +1247,14 @@
       const percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
       const descontoValor = subtotal * (percentual / 100);
       const observacao = document.getElementById('carrinho-observacao').value.trim();
-
       const orcamentos = getOrcamentos();
-      const novo = {
-        id: Date.now(),
-        data: new Date().toISOString(),
-        vendedor: usuarioAtual.nome,
-        itens: [...carrinho],
-        subtotal,
-        descontoPercentual: percentual,
-        descontoValor,
-        observacao,
+      orcamentos.unshift({
+        id: Date.now(), data: new Date().toISOString(), vendedor: usuarioAtual.nome,
+        itens: [...carrinho], subtotal, descontoPercentual: percentual, descontoValor, observacao,
         total: Math.max(0, subtotal - descontoValor)
-      };
-      orcamentos.unshift(novo);
+      });
       setOrcamentos(orcamentos);
-      alert('Orçamento salvo com sucesso!');
+      alert('Orçamento salvo!');
       limparCarrinho();
       atualizarDashboard();
     }
@@ -1175,11 +1263,7 @@
       const lista = getOrcamentos();
       const tbody = document.getElementById('lista-orcamentos');
       const sem = document.getElementById('sem-orcamentos');
-      if (lista.length === 0) {
-        tbody.innerHTML = '';
-        sem.classList.remove('hidden');
-        return;
-      }
+      if (lista.length === 0) { tbody.innerHTML = ''; sem.classList.remove('hidden'); return; }
       sem.classList.add('hidden');
       tbody.innerHTML = lista.map(o => `
         <tr class="border-b hover:bg-slate-50">
@@ -1213,173 +1297,118 @@
       atualizarDashboard();
     }
 
-    function abrirModalFecharVenda() {
-      if (carrinho.length === 0) { alert('Carrinho vazio!'); return; }
-      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
-      const percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
-      const total = Math.max(0, subtotal - (subtotal * percentual / 100));
-      document.getElementById('modal-total-venda').textContent = `R$ ${total.toFixed(2)}`;
-      pagamentoSelecionado = null;
-      document.querySelectorAll('.pagamento-btn').forEach(b => b.classList.remove('border-blue-500', 'bg-blue-50'));
-      document.getElementById('btn-confirmar-venda').disabled = true;
-      document.getElementById('modal-fechar-venda').classList.remove('hidden');
-    }
-
-    function fecharModalFecharVenda() {
-      document.getElementById('modal-fechar-venda').classList.add('hidden');
-    }
-
-    function selecionarPagamento(tipo) {
-      pagamentoSelecionado = tipo;
-      document.querySelectorAll('.pagamento-btn').forEach(b => {
-        b.classList.remove('border-blue-500', 'bg-blue-50');
-        if (b.textContent.trim() === tipo) b.classList.add('border-blue-500', 'bg-blue-50');
+    // Relatório Mensal
+    function getVendasMesAtual() {
+      const agora = new Date();
+      const ultimoZero = getUltimoZero();
+      return getVendas().filter(v => {
+        const d = new Date(v.data);
+        return d.getTime() > ultimoZero && d.getFullYear() === agora.getFullYear() && d.getMonth() === agora.getMonth();
       });
-      document.getElementById('btn-confirmar-venda').disabled = false;
     }
 
-    function confirmarVenda() {
-      if (!pagamentoSelecionado) return;
+    function renderRelatorioMensal() {
+      const vendasMes = getVendasMesAtual();
+      const total = vendasMes.reduce((s, v) => s + v.total, 0);
+      const lucro = vendasMes.reduce((s, v) => s + (v.lucro || 0), 0);
+      const agora = new Date();
+      document.getElementById('mensal-total').textContent = `R$ ${total.toFixed(2)}`;
+      document.getElementById('mensal-lucro').textContent = `R$ ${lucro.toFixed(2)}`;
+      document.getElementById('mensal-periodo').textContent = `Período: ${agora.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`;
 
-      const produtos = getProdutos();
-      for (const item of carrinho) {
-        const p = produtos.find(x => x.id === item.id);
-        if (p) p.estoque = Math.max(0, p.estoque - item.qtd);
+      const historico = getHistoricoMensal();
+      const container = document.getElementById('historico-mensal');
+      if (historico.length === 0) {
+        container.innerHTML = `<p class="text-center text-slate-400 py-8">Nenhum mês zerado ainda</p>`;
+        return;
       }
-      setProdutos(produtos);
+      container.innerHTML = `
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50"><tr>
+            <th class="text-left px-4 py-3">Mês</th>
+            <th class="text-right px-4 py-3">Total Vendido</th>
+            <th class="text-right px-4 py-3">Lucro</th>
+            <th class="text-left px-4 py-3">Zerado em</th>
+          </tr></thead>
+          <tbody>
+            ${historico.map(h => `
+              <tr class="border-b">
+                <td class="px-4 py-3 font-medium">${h.mesNome}</td>
+                <td class="px-4 py-3 text-right">R$ ${h.total.toFixed(2)}</td>
+                <td class="px-4 py-3 text-right text-green-600">R$ ${h.lucro.toFixed(2)}</td>
+                <td class="px-4 py-3 text-slate-500">${new Date(h.dataZero).toLocaleString('pt-BR')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+    }
 
-      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
-      const percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
-      const descontoValor = subtotal * (percentual / 100);
-      const total = Math.max(0, subtotal - descontoValor);
-      const observacao = document.getElementById('carrinho-observacao').value.trim();
+    function zerarMesAtual() {
+      const vendasMes = getVendasMesAtual();
+      const total = vendasMes.reduce((s, v) => s + v.total, 0);
+      const lucro = vendasMes.reduce((s, v) => s + (v.lucro || 0), 0);
+      if (total === 0) { alert('Não há valores para zerar.'); return; }
+      if (!confirm(`Zerar o mês?\nTotal: R$ ${total.toFixed(2)}\nLucro: R$ ${lucro.toFixed(2)}`)) return;
 
-      let lucro = 0;
-      carrinho.forEach(item => {
-        const p = produtos.find(x => x.id === item.id);
-        if (p) lucro += (item.preco - (p.compra || 0)) * item.qtd;
+      const agora = new Date();
+      const historico = getHistoricoMensal();
+      historico.unshift({
+        mesNome: agora.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+        total, lucro, dataZero: agora.toISOString(), qtdVendas: vendasMes.length
       });
-      lucro -= descontoValor;
-
-      const venda = {
-        id: Date.now(),
-        data: new Date().toISOString(),
-        vendedor: usuarioAtual.nome,
-        vendedorLogin: usuarioAtual.login,
-        itens: [...carrinho],
-        subtotal,
-        descontoPercentual: percentual,
-        descontoValor,
-        observacao,
-        total,
-        lucro: Math.max(0, lucro),
-        pagamento: pagamentoSelecionado
-      };
-
-      const vendas = getVendas();
-      vendas.unshift(venda);
-      setVendas(vendas);
-
-      alert(`Venda finalizada!\nTotal: R$ ${total.toFixed(2)}\nPagamento: ${pagamentoSelecionado}`);
-      limparCarrinho();
-      fecharModalFecharVenda();
-      atualizarDashboard();
+      setHistoricoMensal(historico);
+      setUltimoZero(Date.now());
+      alert('Mês zerado e salvo no histórico!');
+      renderRelatorioMensal();
     }
 
     function renderVendedoresDetalhado() {
       const container = document.getElementById('lista-vendedores-detalhada');
       const usuarios = getUsuarios();
       const vendas = getVendas();
-
-      const vendedores = Object.entries(usuarios)
-        .filter(([_, u]) => u.tipo === 'vendedor')
-        .map(([login, u]) => ({ login, ...u }));
+      const vendedores = Object.entries(usuarios).filter(([_, u]) => u.tipo === 'vendedor').map(([login, u]) => ({ login, ...u }));
 
       if (vendedores.length === 0) {
-        container.innerHTML = `
-          <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-500">
-            <i class="fas fa-users text-4xl mb-3 text-slate-300"></i>
-            <p>Nenhum vendedor cadastrado</p>
-          </div>`;
+        container.innerHTML = `<div class="bg-white rounded-2xl border p-10 text-center text-slate-500">Nenhum vendedor</div>`;
         return;
       }
 
-      container.innerHTML = vendedores.map(vendedor => {
-        const vendasVendedor = vendas.filter(v => v.vendedorLogin === vendedor.login || v.vendedor === vendedor.nome);
-        const totalVendido = vendasVendedor.reduce((s, v) => s + v.total, 0);
-        const qtdVendas = vendasVendedor.length;
-
+      container.innerHTML = vendedores.map(v => {
+        const vs = vendas.filter(x => x.vendedorLogin === v.login || x.vendedor === v.nome);
+        const total = vs.reduce((s, x) => s + x.total, 0);
         return `
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="bg-slate-50 px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <i class="fas fa-user text-indigo-600 text-lg"></i>
-                </div>
-                <div>
-                  <h3 class="font-bold text-slate-800 text-lg">${vendedor.nome}</h3>
-                  <p class="text-sm text-slate-500">Login: ${vendedor.login}</p>
-                </div>
+          <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b flex justify-between items-center">
+              <div>
+                <h3 class="font-bold text-lg">${v.nome}</h3>
+                <p class="text-sm text-slate-500">${v.login}</p>
               </div>
-              <div class="flex gap-6 text-sm">
-                <div class="text-center">
-                  <p class="text-slate-500">Total vendido</p>
-                  <p class="font-bold text-green-600 text-lg">R$ ${totalVendido.toFixed(2)}</p>
-                </div>
-                <div class="text-center">
-                  <p class="text-slate-500">Qtd. vendas</p>
-                  <p class="font-bold text-slate-800 text-lg">${qtdVendas}</p>
-                </div>
+              <div class="text-right">
+                <p class="text-green-600 font-bold text-lg">R$ ${total.toFixed(2)}</p>
+                <p class="text-sm text-slate-500">${vs.length} vendas</p>
               </div>
             </div>
-
-            <div class="p-4">
-              ${qtdVendas === 0 ? `
-                <p class="text-center text-slate-400 py-6">Nenhuma venda realizada ainda</p>
-              ` : `
-                <div class="space-y-4">
-                  ${vendasVendedor.map(venda => `
-                    <div class="border border-slate-200 rounded-xl p-4">
-                      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                        <div class="text-sm">
-                          <span class="font-medium text-slate-700">${new Date(venda.data).toLocaleString('pt-BR')}</span>
-                          <span class="mx-2 text-slate-300">|</span>
-                          <span class="text-slate-500">${venda.pagamento}</span>
-                          ${venda.observacao ? `<span class="mx-2 text-slate-300">|</span><span class="text-slate-500 text-xs">${venda.observacao}</span>` : ''}
-                        </div>
-                        <div class="font-bold text-green-600">R$ ${venda.total.toFixed(2)}</div>
-                      </div>
-                      
-                      <div class="bg-slate-50 rounded-lg p-3">
-                        <p class="text-xs font-semibold text-slate-500 mb-2">Itens da venda:</p>
-                        <div class="space-y-1">
-                          ${venda.itens.map(item => `
-                            <div class="flex justify-between text-sm">
-                              <span class="text-slate-700">${item.qtd}x ${item.nome} ${item.medida || ''} <span class="text-slate-400">(${item.codigo})</span></span>
-                              <span class="font-medium">R$ ${(item.preco * item.qtd).toFixed(2)}</span>
-                            </div>
-                          `).join('')}
-                        </div>
-                        ${venda.descontoPercentual > 0 ? `
-                          <div class="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-500">
-                            Desconto: ${venda.descontoPercentual}% (R$ ${(venda.descontoValor || 0).toFixed(2)})
-                          </div>
-                        ` : ''}
-                      </div>
+            <div class="p-4 space-y-3">
+              ${vs.length === 0 ? '<p class="text-center text-slate-400 py-4">Nenhuma venda</p>' :
+                vs.map(venda => `
+                  <div class="border rounded-xl p-3">
+                    <div class="flex justify-between text-sm mb-2">
+                      <span>${new Date(venda.data).toLocaleString('pt-BR')} • ${venda.pagamento}</span>
+                      <span class="font-bold text-green-600">R$ ${venda.total.toFixed(2)}</span>
                     </div>
-                  `).join('')}
-                </div>
-              `}
+                    <div class="text-xs text-slate-600 space-y-1">
+                      ${venda.itens.map(i => `<div>${i.qtd}x ${i.nome} ${i.medida || ''} — R$ ${(i.preco*i.qtd).toFixed(2)}</div>`).join('')}
+                    </div>
+                  </div>
+                `).join('')}
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('');
     }
 
     function renderCaixa() {
       const hoje = new Date().toDateString();
       const vendasHoje = getVendas().filter(v => new Date(v.data).toDateString() === hoje);
-
       const total = vendasHoje.reduce((s, v) => s + v.total, 0);
       const lucro = vendasHoje.reduce((s, v) => s + (v.lucro || 0), 0);
 
@@ -1389,28 +1418,20 @@
       document.getElementById('rel-estoque-baixo').textContent = getProdutos().filter(p => p.estoque <= 20).length;
 
       const pagamentos = {};
-      vendasHoje.forEach(v => {
-        pagamentos[v.pagamento] = (pagamentos[v.pagamento] || 0) + v.total;
-      });
+      vendasHoje.forEach(v => { pagamentos[v.pagamento] = (pagamentos[v.pagamento] || 0) + v.total; });
       document.getElementById('rel-pagamentos').innerHTML = Object.keys(pagamentos).length
-        ? Object.entries(pagamentos).map(([k, v]) => `
-            <div class="flex justify-between"><span>${k}</span><span class="font-medium">R$ ${v.toFixed(2)}</span></div>
-          `).join('')
+        ? Object.entries(pagamentos).map(([k,v]) => `<div class="flex justify-between"><span>${k}</span><span class="font-medium">R$ ${v.toFixed(2)}</span></div>`).join('')
         : '<p class="text-slate-400">Nenhuma venda hoje</p>';
 
       const porVendedor = {};
-      vendasHoje.forEach(v => {
-        porVendedor[v.vendedor] = (porVendedor[v.vendedor] || 0) + v.total;
-      });
+      vendasHoje.forEach(v => { porVendedor[v.vendedor] = (porVendedor[v.vendedor] || 0) + v.total; });
       document.getElementById('rel-vendedores').innerHTML = Object.keys(porVendedor).length
-        ? Object.entries(porVendedor).map(([k, v]) => `
-            <div class="flex justify-between"><span>${k}</span><span class="font-medium">R$ ${v.toFixed(2)}</span></div>
-          `).join('')
+        ? Object.entries(porVendedor).map(([k,v]) => `<div class="flex justify-between"><span>${k}</span><span class="font-medium">R$ ${v.toFixed(2)}</span></div>`).join('')
         : '<p class="text-slate-400">Nenhuma venda hoje</p>';
 
-      document.getElementById('lista-vendas').innerHTML = vendasHoje.slice(0, 20).map(v => `
+      document.getElementById('lista-vendas').innerHTML = vendasHoje.slice(0,20).map(v => `
         <tr class="border-b">
-          <td class="px-3 py-2">${new Date(v.data).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</td>
+          <td class="px-3 py-2">${new Date(v.data).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</td>
           <td class="px-3 py-2">${v.vendedor}</td>
           <td class="px-3 py-2">${v.pagamento}</td>
           <td class="px-3 py-2 text-right font-medium">R$ ${v.total.toFixed(2)}</td>
@@ -1420,20 +1441,16 @@
 
     function renderUsuarios() {
       const usuarios = getUsuarios();
-      const tipoLabel = { admin: 'Admin', gerente: 'Gerente', vendedor: 'Vendedor' };
-      
-      document.getElementById('lista-usuarios').innerHTML = Object.entries(usuarios)
-        .map(([login, u]) => `
-          <div class="flex justify-between items-center py-2 border-b">
-            <div>
-              <div class="font-medium">${u.nome}</div>
-              <div class="text-xs text-slate-500">${login} • ${tipoLabel[u.tipo] || u.tipo}</div>
-            </div>
-            ${login !== 'admin' ? `
-              <button onclick="removerUsuario('${login}')" class="text-red-500 text-sm">Remover</button>
-            ` : '<span class="text-xs text-slate-400">Protegido</span>'}
+      const tipoLabel = { admin: 'Admin', gerente: 'Gerente', vendedor: 'Vendedor', caixa: 'Caixa' };
+      document.getElementById('lista-usuarios').innerHTML = Object.entries(usuarios).map(([login, u]) => `
+        <div class="flex justify-between items-center py-2 border-b">
+          <div>
+            <div class="font-medium">${u.nome}</div>
+            <div class="text-xs text-slate-500">${login} • ${tipoLabel[u.tipo] || u.tipo}</div>
           </div>
-        `).join('');
+          ${login !== 'admin' ? `<button onclick="removerUsuario('${login}')" class="text-red-500 text-sm">Remover</button>` : '<span class="text-xs text-slate-400">Protegido</span>'}
+        </div>
+      `).join('');
     }
 
     function adicionarUsuario() {
@@ -1441,21 +1458,17 @@
       const nome = document.getElementById('novo-nome').value.trim();
       const senha = document.getElementById('novo-senha').value;
       const tipo = document.getElementById('novo-tipo').value;
-
       if (!login || !nome || !senha) { alert('Preencha todos os campos'); return; }
       const usuarios = getUsuarios();
       if (usuarios[login]) { alert('Usuário já existe'); return; }
-
       usuarios[login] = { senha, nome, tipo };
       setUsuarios(usuarios);
-      
       document.getElementById('novo-user').value = '';
       document.getElementById('novo-nome').value = '';
       document.getElementById('novo-senha').value = '';
       document.getElementById('novo-tipo').value = 'vendedor';
-      
       renderUsuarios();
-      alert('Usuário adicionado com sucesso!');
+      alert('Usuário adicionado!');
     }
 
     function removerUsuario(login) {
@@ -1477,7 +1490,6 @@
       } else {
         document.getElementById('dash-vendas-hoje').textContent = '••••';
       }
-
       document.getElementById('dash-total-produtos').textContent = produtos.length;
       document.getElementById('dash-estoque-baixo').textContent = produtos.filter(p => p.estoque <= 20).length;
       document.getElementById('dash-orcamentos').textContent = getOrcamentos().length;
