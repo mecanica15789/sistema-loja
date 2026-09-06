@@ -61,11 +61,13 @@
           <i class="fas fa-sign-in-alt"></i> Entrar
         </button>
         <div class="mt-6 p-4 bg-slate-50 rounded-xl text-sm text-slate-600">
-  <p class="font-semibold text-slate-700 mb-2">Aviso:</p>
-  <p>Ao sair da conta, por favor, feche-a completamente para evitar que outra pessoa entre.</p>
-  <p>Não deixe a conta aberta após o uso.</p>
-  <p class="mt-2">Obrigado pela colaboração!</p>
-</div>
+          <p class="font-semibold text-slate-700 mb-2">Usuários de teste:</p>
+          <p><span class="font-medium">Admin:</span> admin / 1234</p>
+          <p><span class="font-medium">Gerente:</span> gerente / 1234</p>
+          <p><span class="font-medium">Caixa:</span> caixa / 1234</p>
+          <p><span class="font-medium">Vendedor:</span> joao / 1234</p>
+          <p><span class="font-medium">Vendedor:</span> maria / 1234</p>
+        </div>
       </div>
     </div>
   </div>
@@ -105,7 +107,6 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <!-- Nova Venda - Vendedor, Gerente, Admin -->
         <div id="card-venda" onclick="mostrarTela('venda')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
           <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
             <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
@@ -114,7 +115,6 @@
           <p class="text-slate-500 text-sm mt-1">Pesquise rápido e monte o carrinho</p>
         </div>
 
-        <!-- Fechar Venda (Caixa) - só Caixa e Admin -->
         <div id="card-caixa-venda" onclick="mostrarTela('caixa-venda')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
           <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
             <i class="fas fa-barcode text-emerald-600 text-xl"></i>
@@ -161,6 +161,15 @@
           </div>
           <h3 class="font-semibold text-slate-800 text-lg">Relatório Mensal</h3>
           <p class="text-slate-500 text-sm mt-1">Total vendido e lucro do mês</p>
+        </div>
+
+        <!-- NOVO: Logs (só Admin) -->
+        <div id="card-logs" onclick="mostrarTela('logs')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
+          <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-list-ul text-orange-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Logs</h3>
+          <p class="text-slate-500 text-sm mt-1">Registro de todas as ações</p>
         </div>
 
         <div id="card-config" onclick="mostrarTela('config')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
@@ -239,7 +248,7 @@
       </div>
     </main>
 
-    <!-- ========== VENDA (Vendedor / Gerente) ========== -->
+    <!-- ========== VENDA ========== -->
     <main id="tela-venda" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -301,7 +310,6 @@
             </div>
 
             <div class="grid grid-cols-1 gap-2">
-              <!-- Só imprime a nota (gera código de barras) -->
               <button onclick="imprimirNota()" class="bg-slate-700 hover:bg-slate-800 text-white py-2.5 rounded-xl text-sm font-medium">
                 <i class="fas fa-print mr-1"></i> Imprimir Nota (Código de Barras)
               </button>
@@ -336,7 +344,6 @@
         </div>
       </div>
 
-      <!-- Detalhes da nota encontrada -->
       <div id="detalhes-nota-caixa" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
         <div class="flex justify-between items-start mb-4">
           <div>
@@ -424,8 +431,45 @@
           <i class="fas fa-arrow-left"></i> Voltar
         </button>
         <h2 class="text-2xl font-bold text-slate-800">Vendedores</h2>
+        <p class="text-slate-500 text-sm">Desempenho detalhado • Clique em excluir para remover uma venda</p>
       </div>
       <div id="lista-vendedores-detalhada" class="space-y-6"></div>
+    </main>
+
+    <!-- ========== LOGS (NOVA TELA) ========== -->
+    <main id="tela-logs" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+            <i class="fas fa-arrow-left"></i> Voltar
+          </button>
+          <h2 class="text-2xl font-bold text-slate-800">Logs do Sistema</h2>
+          <p class="text-slate-500 text-sm">Registro de todas as ações realizadas</p>
+        </div>
+        <button onclick="limparLogs()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium">
+          <i class="fas fa-trash mr-1"></i> Limpar Logs
+        </button>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto max-h-[70vh]">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b sticky top-0">
+              <tr>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Data / Hora</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Usuário</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Ação</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Detalhes</th>
+              </tr>
+            </thead>
+            <tbody id="lista-logs"></tbody>
+          </table>
+        </div>
+        <div id="sem-logs" class="hidden p-10 text-center text-slate-500">
+          <i class="fas fa-list-ul text-4xl mb-3 text-slate-300"></i>
+          <p>Nenhum log registrado ainda</p>
+        </div>
+      </div>
     </main>
 
     <!-- ========== RELATÓRIO MENSAL ========== -->
@@ -615,7 +659,7 @@
     </div>
   </div>
 
-  <!-- ========== NOTA PARA IMPRESSÃO (com código de barras) ========== -->
+  <!-- NOTA PARA IMPRESSÃO -->
   <div id="nota-impressao" class="hidden fixed inset-0 bg-white z-50 p-6 overflow-auto">
     <div class="max-w-sm mx-auto border border-slate-300 p-4">
       <div class="text-center mb-3">
@@ -623,7 +667,6 @@
         <p class="text-xs text-slate-600">Nota para pagamento no Caixa</p>
       </div>
 
-      <!-- Código de barras -->
       <div class="text-center my-4">
         <svg id="barcode"></svg>
         <p class="text-sm font-mono font-bold mt-1" id="nota-codigo-texto"></p>
@@ -671,7 +714,6 @@
   <script>
     let usuarioAtual = null;
     let carrinho = [];
-    let pagamentoSelecionado = null;
     let notaAtualCaixa = null;
     let pagamentoCaixa = null;
 
@@ -700,6 +742,26 @@
       if (!localStorage.getItem('notasPendentes')) localStorage.setItem('notasPendentes', '[]');
       if (!localStorage.getItem('historicoMensal')) localStorage.setItem('historicoMensal', '[]');
       if (!localStorage.getItem('ultimoZeroMensal')) localStorage.setItem('ultimoZeroMensal', '0');
+      if (!localStorage.getItem('logs')) localStorage.setItem('logs', '[]');
+    }
+
+    // ==================== SISTEMA DE LOGS ====================
+    function getLogs() { return JSON.parse(localStorage.getItem('logs') || '[]'); }
+    function setLogs(l) { localStorage.setItem('logs', JSON.stringify(l)); }
+
+    function registrarLog(acao, detalhes = '') {
+      const logs = getLogs();
+      const usuario = usuarioAtual ? `${usuarioAtual.nome} (${usuarioAtual.login})` : 'Sistema';
+      logs.unshift({
+        id: Date.now() + Math.random(),
+        data: new Date().toISOString(),
+        usuario,
+        acao,
+        detalhes
+      });
+      // Mantém no máximo 500 logs
+      if (logs.length > 500) logs.length = 500;
+      setLogs(logs);
     }
 
     function getProdutos() { return JSON.parse(localStorage.getItem('produtos') || '[]'); }
@@ -728,13 +790,18 @@
       if (usuarios[user] && usuarios[user].senha === pass) {
         usuarioAtual = { login: user, ...usuarios[user] };
         localStorage.setItem('usuarioLogado', JSON.stringify(usuarioAtual));
+        registrarLog('Login', `Usuário ${user} entrou no sistema`);
         mostrarApp();
       } else {
+        registrarLog('Tentativa de login falhou', `Usuário tentado: ${user}`);
         alert('Usuário ou senha incorretos!');
       }
     }
 
     function fazerLogout() {
+      if (usuarioAtual) {
+        registrarLog('Logout', `Usuário ${usuarioAtual.login} saiu do sistema`);
+      }
       localStorage.removeItem('usuarioLogado');
       usuarioAtual = null;
       document.getElementById('login-screen').classList.remove('hidden');
@@ -752,16 +819,15 @@
       const tipo = usuarioAtual.tipo;
       const isAdmin = tipo === 'admin';
       const isCaixa = tipo === 'caixa';
-      const isVendedorOuGerente = tipo === 'vendedor' || tipo === 'gerente' || isAdmin;
 
-      // Controle de cards
-      document.getElementById('card-venda').classList.toggle('hidden', isCaixa); // Caixa não monta venda
+      document.getElementById('card-venda').classList.toggle('hidden', isCaixa);
       document.getElementById('card-caixa-venda').classList.toggle('hidden', !(isCaixa || isAdmin));
       document.getElementById('card-orcamentos').classList.toggle('hidden', isCaixa);
       document.getElementById('card-produtos').classList.toggle('hidden', isCaixa);
       document.getElementById('card-vendedores').classList.toggle('hidden', !isAdmin);
       document.getElementById('card-caixa').classList.toggle('hidden', !isAdmin);
       document.getElementById('card-mensal').classList.toggle('hidden', !isAdmin);
+      document.getElementById('card-logs').classList.toggle('hidden', !isAdmin);
       document.getElementById('card-config').classList.toggle('hidden', !isAdmin);
       
       atualizarDashboard();
@@ -771,8 +837,7 @@
     function mostrarTela(tela) {
       const tipo = usuarioAtual.tipo;
 
-      // Proteções de acesso
-      if (['caixa', 'config', 'vendedores', 'mensal'].includes(tela) && tipo !== 'admin') {
+      if (['caixa', 'config', 'vendedores', 'mensal', 'logs'].includes(tela) && tipo !== 'admin') {
         alert('Acesso restrito ao Administrador.');
         return;
       }
@@ -785,7 +850,7 @@
         return;
       }
 
-      ['dashboard','produtos','venda','orcamentos','caixa','config','vendedores','mensal','caixa-venda'].forEach(t => {
+      ['dashboard','produtos','venda','orcamentos','caixa','config','vendedores','mensal','caixa-venda','logs'].forEach(t => {
         const el = document.getElementById('tela-' + t);
         if (el) el.classList.add('hidden');
       });
@@ -813,13 +878,55 @@
       if (tela === 'config') renderUsuarios();
       if (tela === 'vendedores') renderVendedoresDetalhado();
       if (tela === 'mensal') renderRelatorioMensal();
+      if (tela === 'logs') renderLogs();
       if (tela === 'dashboard') atualizarDashboard();
     }
 
-    // ==================== IMPRIMIR NOTA + GERAR CÓDIGO ====================
+    // ==================== LOGS ====================
+    function renderLogs() {
+      const logs = getLogs();
+      const tbody = document.getElementById('lista-logs');
+      const sem = document.getElementById('sem-logs');
+
+      if (logs.length === 0) {
+        tbody.innerHTML = '';
+        sem.classList.remove('hidden');
+        return;
+      }
+      sem.classList.add('hidden');
+
+      tbody.innerHTML = logs.map(log => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${new Date(log.data).toLocaleString('pt-BR')}</td>
+          <td class="px-4 py-3 font-medium text-slate-800">${log.usuario}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium ${getCorAcao(log.acao)}">${log.acao}</span>
+          </td>
+          <td class="px-4 py-3 text-slate-600 text-xs">${log.detalhes || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function getCorAcao(acao) {
+      if (acao.includes('Login')) return 'bg-green-100 text-green-700';
+      if (acao.includes('Logout')) return 'bg-slate-100 text-slate-700';
+      if (acao.includes('Venda') || acao.includes('Nota')) return 'bg-blue-100 text-blue-700';
+      if (acao.includes('Produto') || acao.includes('Excluiu')) return 'bg-red-100 text-red-700';
+      if (acao.includes('Usuário')) return 'bg-purple-100 text-purple-700';
+      return 'bg-slate-100 text-slate-700';
+    }
+
+    function limparLogs() {
+      if (!confirm('Tem certeza que deseja limpar todos os logs?')) return;
+      setLogs([]);
+      registrarLog('Logs limpos', 'Administrador limpou o histórico de logs');
+      renderLogs();
+    }
+
+    // ==================== IMPRIMIR NOTA ====================
     function imprimirNota() {
       if (carrinho.length === 0) {
-        alert('Carrinho vazio! Adicione produtos antes de imprimir a nota.');
+        alert('Carrinho vazio!');
         return;
       }
 
@@ -829,11 +936,8 @@
       const total = Math.max(0, subtotal - descontoValor);
       const observacao = document.getElementById('carrinho-observacao').value.trim();
       const agora = new Date();
-
-      // Gera código único (8 dígitos)
       const codigo = String(Date.now()).slice(-8);
 
-      // Salva a nota como pendente
       const nota = {
         codigo,
         data: agora.toISOString(),
@@ -851,7 +955,8 @@
       pendentes.unshift(nota);
       setNotasPendentes(pendentes);
 
-      // Preenche a nota visual
+      registrarLog('Gerou Nota', `Código: ${codigo} | Total: R$ ${total.toFixed(2)} | Itens: ${carrinho.length}`);
+
       document.getElementById('nota-codigo-texto').textContent = codigo;
       document.getElementById('nota-data').textContent = agora.toLocaleString('pt-BR');
       document.getElementById('nota-vendedor').textContent = usuarioAtual.nome;
@@ -876,22 +981,11 @@
         obsContainer.classList.add('hidden');
       }
 
-      // Gera o código de barras
       try {
-        JsBarcode("#barcode", codigo, {
-          format: "CODE128",
-          width: 2,
-          height: 50,
-          displayValue: false,
-          margin: 5
-        });
-      } catch(e) {
-        console.log('Barcode error', e);
-      }
+        JsBarcode("#barcode", codigo, { format: "CODE128", width: 2, height: 50, displayValue: false, margin: 5 });
+      } catch(e) {}
 
       document.getElementById('nota-impressao').classList.remove('hidden');
-
-      // Limpa o carrinho depois de gerar a nota
       limparCarrinho();
     }
 
@@ -899,13 +993,10 @@
       document.getElementById('nota-impressao').classList.add('hidden');
     }
 
-    // ==================== CAIXA - BUSCAR E FECHAR ====================
+    // ==================== CAIXA ====================
     function buscarNotaPorCodigo() {
       const codigo = document.getElementById('codigo-nota').value.trim();
-      if (!codigo) {
-        alert('Digite o código da nota.');
-        return;
-      }
+      if (!codigo) { alert('Digite o código da nota.'); return; }
 
       const pendentes = getNotasPendentes();
       const nota = pendentes.find(n => n.codigo === codigo);
@@ -922,18 +1013,15 @@
 
       document.getElementById('cx-nota-numero').textContent = nota.codigo;
       document.getElementById('cx-nota-vendedor').textContent = nota.vendedor;
-
       document.getElementById('cx-nota-itens').innerHTML = nota.itens.map(item => `
         <div class="flex justify-between">
           <span>${item.qtd}x ${item.nome} ${item.medida || ''}</span>
           <span class="font-medium">R$ ${(item.preco * item.qtd).toFixed(2)}</span>
         </div>
       `).join('');
-
       document.getElementById('cx-nota-subtotal').textContent = `R$ ${nota.subtotal.toFixed(2)}`;
       document.getElementById('cx-nota-desconto').textContent = nota.descontoPercentual > 0 
-        ? `${nota.descontoPercentual}% (R$ ${nota.descontoValor.toFixed(2)})` 
-        : 'R$ 0,00';
+        ? `${nota.descontoPercentual}% (R$ ${nota.descontoValor.toFixed(2)})` : 'R$ 0,00';
       document.getElementById('cx-nota-total').textContent = `R$ ${nota.total.toFixed(2)}`;
 
       if (nota.observacao) {
@@ -943,12 +1031,8 @@
         document.getElementById('cx-nota-obs').classList.add('hidden');
       }
 
-      // Reset botões de pagamento
-      document.querySelectorAll('.pagamento-caixa-btn').forEach(b => {
-        b.classList.remove('border-emerald-500', 'bg-emerald-50');
-      });
+      document.querySelectorAll('.pagamento-caixa-btn').forEach(b => b.classList.remove('border-emerald-500', 'bg-emerald-50'));
       document.getElementById('btn-confirmar-caixa').disabled = true;
-
       document.getElementById('detalhes-nota-caixa').classList.remove('hidden');
     }
 
@@ -964,7 +1048,6 @@
     function confirmarVendaCaixa() {
       if (!notaAtualCaixa || !pagamentoCaixa) return;
 
-      // Baixa de estoque
       const produtos = getProdutos();
       for (const item of notaAtualCaixa.itens) {
         const p = produtos.find(x => x.id === item.id);
@@ -972,7 +1055,6 @@
       }
       setProdutos(produtos);
 
-      // Calcula lucro
       let lucro = 0;
       notaAtualCaixa.itens.forEach(item => {
         const p = produtos.find(x => x.id === item.id);
@@ -980,7 +1062,6 @@
       });
       lucro -= (notaAtualCaixa.descontoValor || 0);
 
-      // Cria a venda no nome do VENDEDOR original
       const venda = {
         id: Date.now(),
         data: new Date().toISOString(),
@@ -994,19 +1075,19 @@
         total: notaAtualCaixa.total,
         lucro: Math.max(0, lucro),
         pagamento: pagamentoCaixa,
-        fechadoPor: usuarioAtual.nome // quem fechou no caixa
+        fechadoPor: usuarioAtual.nome
       };
 
       const vendas = getVendas();
       vendas.unshift(venda);
       setVendas(vendas);
 
-      // Remove a nota das pendentes
       setNotasPendentes(getNotasPendentes().filter(n => n.codigo !== notaAtualCaixa.codigo));
 
-      alert(`Venda finalizada com sucesso!\n\nVendedor: ${notaAtualCaixa.vendedor}\nTotal: R$ ${notaAtualCaixa.total.toFixed(2)}\nPagamento: ${pagamentoCaixa}`);
+      registrarLog('Fechou Venda', `Nota ${notaAtualCaixa.codigo} | Vendedor: ${notaAtualCaixa.vendedor} | Total: R$ ${notaAtualCaixa.total.toFixed(2)} | ${pagamentoCaixa}`);
 
-      // Limpa a tela
+      alert(`Venda finalizada!\nVendedor: ${notaAtualCaixa.vendedor}\nTotal: R$ ${notaAtualCaixa.total.toFixed(2)}\nPagamento: ${pagamentoCaixa}`);
+
       document.getElementById('codigo-nota').value = '';
       document.getElementById('detalhes-nota-caixa').classList.add('hidden');
       notaAtualCaixa = null;
@@ -1014,7 +1095,97 @@
       atualizarDashboard();
     }
 
-    // ==================== RESTANTE DAS FUNÇÕES ====================
+
+// ==================== EXCLUIR VENDA (Admin) + DEVOLVER ESTOQUE ====================
+function excluirVenda(id) {
+  if (!confirm('Tem certeza que deseja excluir esta venda?\nOs itens voltarão automaticamente para o estoque.')) return;
+
+  const vendas = getVendas();
+  const venda = vendas.find(v => v.id === id);
+  if (!venda) return;
+
+  // 1. Devolve os itens para o estoque
+  const produtos = getProdutos();
+  if (venda.itens && venda.itens.length > 0) {
+    venda.itens.forEach(item => {
+      const produto = produtos.find(p => p.id === item.id);
+      if (produto) {
+        produto.estoque = (produto.estoque || 0) + item.qtd;
+      }
+    });
+    setProdutos(produtos);
+  }
+
+  // 2. Remove a venda
+  setVendas(vendas.filter(v => v.id !== id));
+
+  // 3. Registra no log
+  registrarLog(
+    'Excluiu Venda',
+    `Vendedor: ${venda.vendedor} | Total: R$ ${venda.total.toFixed(2)} | Itens devolvidos ao estoque | Data: ${new Date(venda.data).toLocaleString('pt-BR')}`
+  );
+
+  alert('Venda excluída com sucesso!\nOs itens foram devolvidos ao estoque.');
+  renderVendedoresDetalhado();
+  atualizarDashboard();
+}
+
+    // ==================== VENDEDORES DETALHADO ====================
+    function renderVendedoresDetalhado() {
+      const container = document.getElementById('lista-vendedores-detalhada');
+      const usuarios = getUsuarios();
+      const vendas = getVendas();
+      const vendedores = Object.entries(usuarios)
+        .filter(([_, u]) => u.tipo === 'vendedor')
+        .map(([login, u]) => ({ login, ...u }));
+
+      if (vendedores.length === 0) {
+        container.innerHTML = `<div class="bg-white rounded-2xl border p-10 text-center text-slate-500">Nenhum vendedor cadastrado</div>`;
+        return;
+      }
+
+      container.innerHTML = vendedores.map(v => {
+        const vs = vendas.filter(x => x.vendedorLogin === v.login || x.vendedor === v.nome);
+        const total = vs.reduce((s, x) => s + x.total, 0);
+        return `
+          <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b flex justify-between items-center">
+              <div>
+                <h3 class="font-bold text-lg">${v.nome}</h3>
+                <p class="text-sm text-slate-500">${v.login}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-green-600 font-bold text-lg">R$ ${total.toFixed(2)}</p>
+                <p class="text-sm text-slate-500">${vs.length} vendas</p>
+              </div>
+            </div>
+            <div class="p-4 space-y-3">
+              ${vs.length === 0 ? '<p class="text-center text-slate-400 py-4">Nenhuma venda</p>' :
+                vs.map(venda => `
+                  <div class="border rounded-xl p-3">
+                    <div class="flex justify-between items-start text-sm mb-2">
+                      <div>
+                        <span>${new Date(venda.data).toLocaleString('pt-BR')} • ${venda.pagamento}</span>
+                        ${venda.fechadoPor ? `<span class="text-xs text-slate-400 ml-2">(fechado por ${venda.fechadoPor})</span>` : ''}
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <span class="font-bold text-green-600">R$ ${venda.total.toFixed(2)}</span>
+                        <button onclick="excluirVenda(${venda.id})" class="text-red-500 hover:text-red-700 text-xs" title="Excluir venda">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="text-xs text-slate-600 space-y-1">
+                      ${venda.itens.map(i => `<div>${i.qtd}x ${i.nome} ${i.medida || ''} — R$ ${(i.preco*i.qtd).toFixed(2)}</div>`).join('')}
+                    </div>
+                  </div>
+                `).join('')}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ==================== PRODUTOS ====================
     function renderProdutos(filtro = '') {
       const produtos = getProdutos();
       const tbody = document.getElementById('lista-produtos');
@@ -1025,10 +1196,8 @@
       document.getElementById('th-acoes').style.display = podeEditar ? '' : 'none';
 
       const filtrados = produtos.filter(p =>
-        p.nome.toLowerCase().includes(termo) ||
-        p.codigo.toLowerCase().includes(termo) ||
-        (p.medida || '').toLowerCase().includes(termo) ||
-        (p.local || '').toLowerCase().includes(termo) ||
+        p.nome.toLowerCase().includes(termo) || p.codigo.toLowerCase().includes(termo) ||
+        (p.medida || '').toLowerCase().includes(termo) || (p.local || '').toLowerCase().includes(termo) ||
         (p.categoria || '').toLowerCase().includes(termo)
       );
 
@@ -1100,9 +1269,11 @@
       if (id) {
         const idx = produtos.findIndex(p => p.id == id);
         if (idx >= 0) produtos[idx] = { ...produtos[idx], ...dados };
+        registrarLog('Editou Produto', `${dados.codigo} - ${dados.nome}`);
       } else {
         dados.id = Date.now();
         produtos.push(dados);
+        registrarLog('Cadastrou Produto', `${dados.codigo} - ${dados.nome}`);
       }
       setProdutos(produtos);
       fecharModalProduto();
@@ -1118,12 +1289,15 @@
 
     function excluirProduto(id) {
       if (!podeGerenciarProdutos()) return;
+      const p = getProdutos().find(x => x.id === id);
       if (!confirm('Excluir este produto?')) return;
-      setProdutos(getProdutos().filter(p => p.id !== id));
+      setProdutos(getProdutos().filter(x => x.id !== id));
+      registrarLog('Excluiu Produto', p ? `${p.codigo} - ${p.nome}` : `ID ${id}`);
       renderProdutos();
       atualizarDashboard();
     }
 
+    // ==================== CARRINHO ====================
     function buscarParaVenda() {
       const termo = document.getElementById('busca-venda').value.toLowerCase().trim();
       const container = document.getElementById('resultados-venda');
@@ -1252,6 +1426,7 @@
         total: Math.max(0, subtotal - descontoValor)
       });
       setOrcamentos(orcamentos);
+      registrarLog('Salvou Orçamento', `Total: R$ ${(subtotal - descontoValor).toFixed(2)}`);
       alert('Orçamento salvo!');
       limparCarrinho();
       atualizarDashboard();
@@ -1291,6 +1466,7 @@
     function excluirOrcamento(id) {
       if (!confirm('Excluir orçamento?')) return;
       setOrcamentos(getOrcamentos().filter(o => o.id !== id));
+      registrarLog('Excluiu Orçamento', `ID ${id}`);
       renderOrcamentos();
       atualizarDashboard();
     }
@@ -1356,52 +1532,9 @@
       });
       setHistoricoMensal(historico);
       setUltimoZero(Date.now());
+      registrarLog('Zerou Mês', `Total: R$ ${total.toFixed(2)} | Lucro: R$ ${lucro.toFixed(2)}`);
       alert('Mês zerado e salvo no histórico!');
       renderRelatorioMensal();
-    }
-
-    function renderVendedoresDetalhado() {
-      const container = document.getElementById('lista-vendedores-detalhada');
-      const usuarios = getUsuarios();
-      const vendas = getVendas();
-      const vendedores = Object.entries(usuarios).filter(([_, u]) => u.tipo === 'vendedor').map(([login, u]) => ({ login, ...u }));
-
-      if (vendedores.length === 0) {
-        container.innerHTML = `<div class="bg-white rounded-2xl border p-10 text-center text-slate-500">Nenhum vendedor</div>`;
-        return;
-      }
-
-      container.innerHTML = vendedores.map(v => {
-        const vs = vendas.filter(x => x.vendedorLogin === v.login || x.vendedor === v.nome);
-        const total = vs.reduce((s, x) => s + x.total, 0);
-        return `
-          <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
-            <div class="bg-slate-50 px-6 py-4 border-b flex justify-between items-center">
-              <div>
-                <h3 class="font-bold text-lg">${v.nome}</h3>
-                <p class="text-sm text-slate-500">${v.login}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-green-600 font-bold text-lg">R$ ${total.toFixed(2)}</p>
-                <p class="text-sm text-slate-500">${vs.length} vendas</p>
-              </div>
-            </div>
-            <div class="p-4 space-y-3">
-              ${vs.length === 0 ? '<p class="text-center text-slate-400 py-4">Nenhuma venda</p>' :
-                vs.map(venda => `
-                  <div class="border rounded-xl p-3">
-                    <div class="flex justify-between text-sm mb-2">
-                      <span>${new Date(venda.data).toLocaleString('pt-BR')} • ${venda.pagamento}</span>
-                      <span class="font-bold text-green-600">R$ ${venda.total.toFixed(2)}</span>
-                    </div>
-                    <div class="text-xs text-slate-600 space-y-1">
-                      ${venda.itens.map(i => `<div>${i.qtd}x ${i.nome} ${i.medida || ''} — R$ ${(i.preco*i.qtd).toFixed(2)}</div>`).join('')}
-                    </div>
-                  </div>
-                `).join('')}
-            </div>
-          </div>`;
-      }).join('');
     }
 
     function renderCaixa() {
@@ -1461,6 +1594,7 @@
       if (usuarios[login]) { alert('Usuário já existe'); return; }
       usuarios[login] = { senha, nome, tipo };
       setUsuarios(usuarios);
+      registrarLog('Adicionou Usuário', `${nome} (${login}) - ${tipo}`);
       document.getElementById('novo-user').value = '';
       document.getElementById('novo-nome').value = '';
       document.getElementById('novo-senha').value = '';
@@ -1472,8 +1606,10 @@
     function removerUsuario(login) {
       if (!confirm('Remover este usuário?')) return;
       const usuarios = getUsuarios();
+      const nome = usuarios[login]?.nome || login;
       delete usuarios[login];
       setUsuarios(usuarios);
+      registrarLog('Removeu Usuário', `${nome} (${login})`);
       renderUsuarios();
     }
 
