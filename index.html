@@ -3,10 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Loja - Parafusos & Ferragens</title>
+  <title>Sistema Loja - Parafusos & Ferragens (Sincronizado)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -26,9 +31,32 @@
       }
       .no-print { display: none !important; }
     }
+    
+    .sync-status {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: #10b981;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sync-status.offline { background: #ef4444; }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
+
+  <div id="sync-status" class="sync-status">
+    <i class="fas fa-cloud"></i>
+    <span>Sincronizado</span>
+  </div>
 
   <!-- ==================== LOGIN ==================== -->
   <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
@@ -39,6 +67,7 @@
         </div>
         <h1 class="text-2xl font-bold text-white">Sistema da Loja</h1>
         <p class="text-blue-100 mt-1">Parafusos & Ferragens</p>
+        <p class="text-blue-200 text-xs mt-2">Sincronizado entre todos os computadores</p>
       </div>
       <div class="p-8">
         <div class="mb-5">
@@ -60,12 +89,12 @@
         <button onclick="fazerLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition flex items-center justify-center gap-2">
           <i class="fas fa-sign-in-alt"></i> Entrar
         </button>
-<div class="mt-6 p-4 bg-slate-50 rounded-xl text-sm text-slate-600">
-  <p class="font-semibold text-slate-700 mb-2">Aviso:</p>
-  <p>Ao sair da conta, por favor, feche-a completamente para evitar que outra pessoa entre.</p>
-  <p>Não deixe a conta aberta após o uso.</p>
-  <p class="mt-2">Obrigado pela colaboração!</p>
-</div>
+        <div class="mt-6 p-4 bg-slate-50 rounded-xl text-sm text-slate-600">
+          <p class="font-semibold text-slate-700 mb-2">Aviso:</p>
+          <p>Ao sair da conta, por favor, feche-a completamente para evitar que outra pessoa entre.</p>
+          <p>Não deixe a conta aberta após o uso.</p>
+          <p class="mt-2">Obrigado pela colaboração!</p>
+        </div>
       </div>
     </div>
   </div>
@@ -81,7 +110,7 @@
             </div>
             <div>
               <h1 class="font-bold text-slate-800 text-lg leading-tight">Sistema da Loja</h1>
-              <p class="text-xs text-slate-500">Parafusos & Ferragens</p>
+              <p class="text-xs text-slate-500">Parafusos & Ferragens • Sincronizado</p>
             </div>
           </div>
           <div class="flex items-center gap-3">
@@ -161,7 +190,6 @@
           <p class="text-slate-500 text-sm mt-1">Total vendido e lucro do mês</p>
         </div>
 
-        <!-- NOVO: Logs (só Admin) -->
         <div id="card-logs" onclick="mostrarTela('logs')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
           <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
             <i class="fas fa-list-ul text-orange-600 text-xl"></i>
@@ -434,7 +462,7 @@
       <div id="lista-vendedores-detalhada" class="space-y-6"></div>
     </main>
 
-    <!-- ========== LOGS (NOVA TELA) ========== -->
+    <!-- ========== LOGS ========== -->
     <main id="tela-logs" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
       <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -710,22 +738,155 @@
   </div>
 
   <script>
+    // ==================== FIREBASE CONFIG ====================
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOYDXCSAPRfPHbP5q2qOQrb7IKu19WofM",
+      authDomain: "site-de-ferramente.firebaseapp.com",
+      databaseURL: "https://site-de-ferramente-default-rtdb.firebaseio.com",
+      projectId: "site-de-ferramente",
+      storageBucket: "site-de-ferramente.firebasestorage.app",
+      messagingSenderId: "477518612839",
+      appId: "1:477518612839:web:4e0f19fdfb94dcacdfc7c2",
+      measurementId: "G-X8ZKT2C7PW"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ==================== ESTADO LOCAL ====================
     let usuarioAtual = null;
     let carrinho = [];
     let notaAtualCaixa = null;
     let pagamentoCaixa = null;
 
-    const usuariosPadrao = {
-      admin:   { senha: '1234', nome: 'Administrador', tipo: 'admin' },
-      gerente: { senha: '1234', nome: 'Carlos Gerente', tipo: 'gerente' },
-      caixa:   { senha: '1234', nome: 'Ana Caixa', tipo: 'caixa' },
-      joao:    { senha: '1234', nome: 'João Silva', tipo: 'vendedor' },
-      maria:   { senha: '1234', nome: 'Maria Santos', tipo: 'vendedor' }
+    // Cache local dos dados (atualizado em tempo real pelo Firebase)
+    let cache = {
+      usuarios: {},
+      produtos: [],
+      vendas: [],
+      orcamentos: [],
+      notasPendentes: [],
+      historicoMensal: [],
+      ultimoZeroMensal: 0,
+      logs: []
     };
 
-    function init() {
-      if (!localStorage.getItem('usuarios')) localStorage.setItem('usuarios', JSON.stringify(usuariosPadrao));
-      if (!localStorage.getItem('produtos')) {
+    // ==================== HELPERS FIREBASE ====================
+    function setSyncStatus(online) {
+      const el = document.getElementById('sync-status');
+      if (online) {
+        el.classList.remove('offline');
+        el.innerHTML = '<i class="fas fa-cloud"></i><span>Sincronizado</span>';
+      } else {
+        el.classList.add('offline');
+        el.innerHTML = '<i class="fas fa-cloud"></i><span>Offline</span>';
+      }
+    }
+
+    // Escuta mudanças em tempo real
+    function iniciarListeners() {
+      const refs = [
+        { key: 'usuarios', path: 'usuarios' },
+        { key: 'produtos', path: 'produtos' },
+        { key: 'vendas', path: 'vendas' },
+        { key: 'orcamentos', path: 'orcamentos' },
+        { key: 'notasPendentes', path: 'notasPendentes' },
+        { key: 'historicoMensal', path: 'historicoMensal' },
+        { key: 'ultimoZeroMensal', path: 'ultimoZeroMensal' },
+        { key: 'logs', path: 'logs' }
+      ];
+
+      refs.forEach(({ key, path }) => {
+        db.ref(path).on('value', (snap) => {
+          const val = snap.val();
+          if (key === 'usuarios') {
+            cache.usuarios = val || {};
+          } else if (key === 'ultimoZeroMensal') {
+            cache.ultimoZeroMensal = val || 0;
+          } else {
+            cache[key] = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+          }
+          // Atualiza UI se necessário
+          if (usuarioAtual) {
+            if (key === 'produtos' && document.getElementById('tela-produtos') && !document.getElementById('tela-produtos').classList.contains('hidden')) {
+              renderProdutos(document.getElementById('busca-produto')?.value || '');
+            }
+            if (key === 'vendas' || key === 'produtos' || key === 'orcamentos') {
+              atualizarDashboard();
+            }
+            if (key === 'logs' && document.getElementById('tela-logs') && !document.getElementById('tela-logs').classList.contains('hidden')) {
+              renderLogs();
+            }
+            if (key === 'orcamentos' && document.getElementById('tela-orcamentos') && !document.getElementById('tela-orcamentos').classList.contains('hidden')) {
+              renderOrcamentos();
+            }
+            if (key === 'vendas' && document.getElementById('tela-vendedores') && !document.getElementById('tela-vendedores').classList.contains('hidden')) {
+              renderVendedoresDetalhado();
+            }
+            if (key === 'vendas' && document.getElementById('tela-caixa') && !document.getElementById('tela-caixa').classList.contains('hidden')) {
+              renderCaixa();
+            }
+            if ((key === 'vendas' || key === 'historicoMensal' || key === 'ultimoZeroMensal') && document.getElementById('tela-mensal') && !document.getElementById('tela-mensal').classList.contains('hidden')) {
+              renderRelatorioMensal();
+            }
+          }
+          setSyncStatus(true);
+        }, (err) => {
+          console.error('Erro listener', path, err);
+          setSyncStatus(false);
+        });
+      });
+    }
+
+    // Funções de escrita
+    async function salvarNoFirebase(path, data) {
+      try {
+        await db.ref(path).set(data);
+        setSyncStatus(true);
+      } catch (e) {
+        console.error('Erro ao salvar', path, e);
+        setSyncStatus(false);
+        alert('Erro de sincronização. Verifique a internet.');
+      }
+    }
+
+    // ==================== GETTERS (usam o cache) ====================
+    function getUsuarios() { return cache.usuarios; }
+    function getProdutos() { return cache.produtos; }
+    function getVendas() { return cache.vendas; }
+    function getOrcamentos() { return cache.orcamentos; }
+    function getNotasPendentes() { return cache.notasPendentes; }
+    function getHistoricoMensal() { return cache.historicoMensal; }
+    function getUltimoZero() { return cache.ultimoZeroMensal; }
+    function getLogs() { return cache.logs; }
+
+    // ==================== SETTERS ====================
+    async function setUsuarios(u) { cache.usuarios = u; await salvarNoFirebase('usuarios', u); }
+    async function setProdutos(p) { cache.produtos = p; await salvarNoFirebase('produtos', p); }
+    async function setVendas(v) { cache.vendas = v; await salvarNoFirebase('vendas', v); }
+    async function setOrcamentos(o) { cache.orcamentos = o; await salvarNoFirebase('orcamentos', o); }
+    async function setNotasPendentes(n) { cache.notasPendentes = n; await salvarNoFirebase('notasPendentes', n); }
+    async function setHistoricoMensal(h) { cache.historicoMensal = h; await salvarNoFirebase('historicoMensal', h); }
+    async function setUltimoZero(ts) { cache.ultimoZeroMensal = ts; await salvarNoFirebase('ultimoZeroMensal', ts); }
+    async function setLogs(l) { cache.logs = l; await salvarNoFirebase('logs', l); }
+
+    // ==================== INICIALIZAÇÃO ====================
+    async function init() {
+      // Dados padrão se estiver vazio
+      const usuariosSnap = await db.ref('usuarios').once('value');
+      if (!usuariosSnap.exists()) {
+        const usuariosPadrao = {
+          admin:   { senha: '1234', nome: 'Administrador', tipo: 'admin' },
+          gerente: { senha: '1234', nome: 'Carlos Gerente', tipo: 'gerente' },
+          caixa:   { senha: '1234', nome: 'Ana Caixa', tipo: 'caixa' },
+          joao:    { senha: '1234', nome: 'João Silva', tipo: 'vendedor' },
+          maria:   { senha: '1234', nome: 'Maria Santos', tipo: 'vendedor' }
+        };
+        await setUsuarios(usuariosPadrao);
+      }
+
+      const produtosSnap = await db.ref('produtos').once('value');
+      if (!produtosSnap.exists()) {
         const exemplos = [
           { id: 1, nome: 'Parafuso Sextavado', categoria: 'Parafuso', medida: 'M6 x 30', codigo: 'PAR-M6-30', compra: 0.15, venda: 0.45, estoque: 500, local: 'Gaveta A-12' },
           { id: 2, nome: 'Parafuso Sextavado', categoria: 'Parafuso', medida: 'M8 x 40', codigo: 'PAR-M8-40', compra: 0.25, venda: 0.70, estoque: 320, local: 'Gaveta A-14' },
@@ -733,21 +894,23 @@
           { id: 4, nome: 'Arruela Lisa', categoria: 'Arruela', medida: 'M6', codigo: 'ARR-M6', compra: 0.03, venda: 0.12, estoque: 1000, local: 'Gaveta B-05' },
           { id: 5, nome: 'Parafuso Allen', categoria: 'Parafuso', medida: 'M5 x 20', codigo: 'ALL-M5-20', compra: 0.18, venda: 0.55, estoque: 15, local: 'Gaveta C-01' }
         ];
-        localStorage.setItem('produtos', JSON.stringify(exemplos));
+        await setProdutos(exemplos);
       }
-      if (!localStorage.getItem('vendas')) localStorage.setItem('vendas', '[]');
-      if (!localStorage.getItem('orcamentos')) localStorage.setItem('orcamentos', '[]');
-      if (!localStorage.getItem('notasPendentes')) localStorage.setItem('notasPendentes', '[]');
-      if (!localStorage.getItem('historicoMensal')) localStorage.setItem('historicoMensal', '[]');
-      if (!localStorage.getItem('ultimoZeroMensal')) localStorage.setItem('ultimoZeroMensal', '0');
-      if (!localStorage.getItem('logs')) localStorage.setItem('logs', '[]');
+
+      // Garante que as outras listas existam
+      const paths = ['vendas', 'orcamentos', 'notasPendentes', 'historicoMensal', 'logs'];
+      for (const p of paths) {
+        const s = await db.ref(p).once('value');
+        if (!s.exists()) await db.ref(p).set([]);
+      }
+      const zeroSnap = await db.ref('ultimoZeroMensal').once('value');
+      if (!zeroSnap.exists()) await db.ref('ultimoZeroMensal').set(0);
+
+      iniciarListeners();
     }
 
-    // ==================== SISTEMA DE LOGS ====================
-    function getLogs() { return JSON.parse(localStorage.getItem('logs') || '[]'); }
-    function setLogs(l) { localStorage.setItem('logs', JSON.stringify(l)); }
-
-    function registrarLog(acao, detalhes = '') {
+    // ==================== LOGS ====================
+    async function registrarLog(acao, detalhes = '') {
       const logs = getLogs();
       const usuario = usuarioAtual ? `${usuarioAtual.nome} (${usuarioAtual.login})` : 'Sistema';
       logs.unshift({
@@ -757,48 +920,32 @@
         acao,
         detalhes
       });
-      // Mantém no máximo 500 logs
       if (logs.length > 500) logs.length = 500;
-      setLogs(logs);
+      await setLogs(logs);
     }
-
-    function getProdutos() { return JSON.parse(localStorage.getItem('produtos') || '[]'); }
-    function setProdutos(p) { localStorage.setItem('produtos', JSON.stringify(p)); }
-    function getVendas() { return JSON.parse(localStorage.getItem('vendas') || '[]'); }
-    function setVendas(v) { localStorage.setItem('vendas', JSON.stringify(v)); }
-    function getOrcamentos() { return JSON.parse(localStorage.getItem('orcamentos') || '[]'); }
-    function setOrcamentos(o) { localStorage.setItem('orcamentos', JSON.stringify(o)); }
-    function getUsuarios() { return JSON.parse(localStorage.getItem('usuarios') || '{}'); }
-    function setUsuarios(u) { localStorage.setItem('usuarios', JSON.stringify(u)); }
-    function getNotasPendentes() { return JSON.parse(localStorage.getItem('notasPendentes') || '[]'); }
-    function setNotasPendentes(n) { localStorage.setItem('notasPendentes', JSON.stringify(n)); }
-    function getHistoricoMensal() { return JSON.parse(localStorage.getItem('historicoMensal') || '[]'); }
-    function setHistoricoMensal(h) { localStorage.setItem('historicoMensal', JSON.stringify(h)); }
-    function getUltimoZero() { return parseInt(localStorage.getItem('ultimoZeroMensal') || '0'); }
-    function setUltimoZero(ts) { localStorage.setItem('ultimoZeroMensal', String(ts)); }
 
     function podeGerenciarProdutos() {
       return usuarioAtual && (usuarioAtual.tipo === 'admin' || usuarioAtual.tipo === 'gerente');
     }
 
-    function fazerLogin() {
+    async function fazerLogin() {
       const user = document.getElementById('login-user').value.trim().toLowerCase();
       const pass = document.getElementById('login-pass').value;
       const usuarios = getUsuarios();
       if (usuarios[user] && usuarios[user].senha === pass) {
         usuarioAtual = { login: user, ...usuarios[user] };
         localStorage.setItem('usuarioLogado', JSON.stringify(usuarioAtual));
-        registrarLog('Login', `Usuário ${user} entrou no sistema`);
+        await registrarLog('Login', `Usuário ${user} entrou no sistema`);
         mostrarApp();
       } else {
-        registrarLog('Tentativa de login falhou', `Usuário tentado: ${user}`);
+        await registrarLog('Tentativa de login falhou', `Usuário tentado: ${user}`);
         alert('Usuário ou senha incorretos!');
       }
     }
 
-    function fazerLogout() {
+    async function fazerLogout() {
       if (usuarioAtual) {
-        registrarLog('Logout', `Usuário ${usuarioAtual.login} saiu do sistema`);
+        await registrarLog('Logout', `Usuário ${usuarioAtual.login} saiu do sistema`);
       }
       localStorage.removeItem('usuarioLogado');
       usuarioAtual = null;
@@ -914,15 +1061,15 @@
       return 'bg-slate-100 text-slate-700';
     }
 
-    function limparLogs() {
+    async function limparLogs() {
       if (!confirm('Tem certeza que deseja limpar todos os logs?')) return;
-      setLogs([]);
-      registrarLog('Logs limpos', 'Administrador limpou o histórico de logs');
+      await setLogs([]);
+      await registrarLog('Logs limpos', 'Administrador limpou o histórico de logs');
       renderLogs();
     }
 
     // ==================== IMPRIMIR NOTA ====================
-    function imprimirNota() {
+    async function imprimirNota() {
       if (carrinho.length === 0) {
         alert('Carrinho vazio!');
         return;
@@ -951,9 +1098,9 @@
 
       const pendentes = getNotasPendentes();
       pendentes.unshift(nota);
-      setNotasPendentes(pendentes);
+      await setNotasPendentes(pendentes);
 
-      registrarLog('Gerou Nota', `Código: ${codigo} | Total: R$ ${total.toFixed(2)} | Itens: ${carrinho.length}`);
+      await registrarLog('Gerou Nota', `Código: ${codigo} | Total: R$ ${total.toFixed(2)} | Itens: ${carrinho.length}`);
 
       document.getElementById('nota-codigo-texto').textContent = codigo;
       document.getElementById('nota-data').textContent = agora.toLocaleString('pt-BR');
@@ -1043,7 +1190,7 @@
       document.getElementById('btn-confirmar-caixa').disabled = false;
     }
 
-    function confirmarVendaCaixa() {
+    async function confirmarVendaCaixa() {
       if (!notaAtualCaixa || !pagamentoCaixa) return;
 
       const produtos = getProdutos();
@@ -1051,7 +1198,7 @@
         const p = produtos.find(x => x.id === item.id);
         if (p) p.estoque = Math.max(0, p.estoque - item.qtd);
       }
-      setProdutos(produtos);
+      await setProdutos(produtos);
 
       let lucro = 0;
       notaAtualCaixa.itens.forEach(item => {
@@ -1078,11 +1225,11 @@
 
       const vendas = getVendas();
       vendas.unshift(venda);
-      setVendas(vendas);
+      await setVendas(vendas);
 
-      setNotasPendentes(getNotasPendentes().filter(n => n.codigo !== notaAtualCaixa.codigo));
+      await setNotasPendentes(getNotasPendentes().filter(n => n.codigo !== notaAtualCaixa.codigo));
 
-      registrarLog('Fechou Venda', `Nota ${notaAtualCaixa.codigo} | Vendedor: ${notaAtualCaixa.vendedor} | Total: R$ ${notaAtualCaixa.total.toFixed(2)} | ${pagamentoCaixa}`);
+      await registrarLog('Fechou Venda', `Nota ${notaAtualCaixa.codigo} | Vendedor: ${notaAtualCaixa.vendedor} | Total: R$ ${notaAtualCaixa.total.toFixed(2)} | ${pagamentoCaixa}`);
 
       alert(`Venda finalizada!\nVendedor: ${notaAtualCaixa.vendedor}\nTotal: R$ ${notaAtualCaixa.total.toFixed(2)}\nPagamento: ${pagamentoCaixa}`);
 
@@ -1093,40 +1240,36 @@
       atualizarDashboard();
     }
 
+    // ==================== EXCLUIR VENDA ====================
+    async function excluirVenda(id) {
+      if (!confirm('Tem certeza que deseja excluir esta venda?\nOs itens voltarão automaticamente para o estoque.')) return;
 
-// ==================== EXCLUIR VENDA (Admin) + DEVOLVER ESTOQUE ====================
-function excluirVenda(id) {
-  if (!confirm('Tem certeza que deseja excluir esta venda?\nOs itens voltarão automaticamente para o estoque.')) return;
+      const vendas = getVendas();
+      const venda = vendas.find(v => v.id === id);
+      if (!venda) return;
 
-  const vendas = getVendas();
-  const venda = vendas.find(v => v.id === id);
-  if (!venda) return;
-
-  // 1. Devolve os itens para o estoque
-  const produtos = getProdutos();
-  if (venda.itens && venda.itens.length > 0) {
-    venda.itens.forEach(item => {
-      const produto = produtos.find(p => p.id === item.id);
-      if (produto) {
-        produto.estoque = (produto.estoque || 0) + item.qtd;
+      const produtos = getProdutos();
+      if (venda.itens && venda.itens.length > 0) {
+        venda.itens.forEach(item => {
+          const produto = produtos.find(p => p.id === item.id);
+          if (produto) {
+            produto.estoque = (produto.estoque || 0) + item.qtd;
+          }
+        });
+        await setProdutos(produtos);
       }
-    });
-    setProdutos(produtos);
-  }
 
-  // 2. Remove a venda
-  setVendas(vendas.filter(v => v.id !== id));
+      await setVendas(vendas.filter(v => v.id !== id));
 
-  // 3. Registra no log
-  registrarLog(
-    'Excluiu Venda',
-    `Vendedor: ${venda.vendedor} | Total: R$ ${venda.total.toFixed(2)} | Itens devolvidos ao estoque | Data: ${new Date(venda.data).toLocaleString('pt-BR')}`
-  );
+      await registrarLog(
+        'Excluiu Venda',
+        `Vendedor: ${venda.vendedor} | Total: R$ ${venda.total.toFixed(2)} | Itens devolvidos ao estoque | Data: ${new Date(venda.data).toLocaleString('pt-BR')}`
+      );
 
-  alert('Venda excluída com sucesso!\nOs itens foram devolvidos ao estoque.');
-  renderVendedoresDetalhado();
-  atualizarDashboard();
-}
+      alert('Venda excluída com sucesso!\nOs itens foram devolvidos ao estoque.');
+      renderVendedoresDetalhado();
+      atualizarDashboard();
+    }
 
     // ==================== VENDEDORES DETALHADO ====================
     function renderVendedoresDetalhado() {
@@ -1249,7 +1392,7 @@ function excluirVenda(id) {
 
     function fecharModalProduto() { document.getElementById('modal-produto').classList.add('hidden'); }
 
-    function salvarProduto(e) {
+    async function salvarProduto(e) {
       e.preventDefault();
       if (!podeGerenciarProdutos()) return;
       const produtos = getProdutos();
@@ -1267,13 +1410,13 @@ function excluirVenda(id) {
       if (id) {
         const idx = produtos.findIndex(p => p.id == id);
         if (idx >= 0) produtos[idx] = { ...produtos[idx], ...dados };
-        registrarLog('Editou Produto', `${dados.codigo} - ${dados.nome}`);
+        await registrarLog('Editou Produto', `${dados.codigo} - ${dados.nome}`);
       } else {
         dados.id = Date.now();
         produtos.push(dados);
-        registrarLog('Cadastrou Produto', `${dados.codigo} - ${dados.nome}`);
+        await registrarLog('Cadastrou Produto', `${dados.codigo} - ${dados.nome}`);
       }
-      setProdutos(produtos);
+      await setProdutos(produtos);
       fecharModalProduto();
       renderProdutos();
       atualizarDashboard();
@@ -1285,12 +1428,12 @@ function excluirVenda(id) {
       if (p) abrirModalProduto(p);
     }
 
-    function excluirProduto(id) {
+    async function excluirProduto(id) {
       if (!podeGerenciarProdutos()) return;
       const p = getProdutos().find(x => x.id === id);
       if (!confirm('Excluir este produto?')) return;
-      setProdutos(getProdutos().filter(x => x.id !== id));
-      registrarLog('Excluiu Produto', p ? `${p.codigo} - ${p.nome}` : `ID ${id}`);
+      await setProdutos(getProdutos().filter(x => x.id !== id));
+      await registrarLog('Excluiu Produto', p ? `${p.codigo} - ${p.nome}` : `ID ${id}`);
       renderProdutos();
       atualizarDashboard();
     }
@@ -1411,7 +1554,7 @@ function excluirVenda(id) {
       document.getElementById('carrinho-total').textContent = `R$ ${total.toFixed(2)}`;
     }
 
-    function salvarOrcamento() {
+    async function salvarOrcamento() {
       if (carrinho.length === 0) { alert('Carrinho vazio!'); return; }
       const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
       const percentual = parseFloat(document.getElementById('carrinho-desconto').value) || 0;
@@ -1423,8 +1566,8 @@ function excluirVenda(id) {
         itens: [...carrinho], subtotal, descontoPercentual: percentual, descontoValor, observacao,
         total: Math.max(0, subtotal - descontoValor)
       });
-      setOrcamentos(orcamentos);
-      registrarLog('Salvou Orçamento', `Total: R$ ${(subtotal - descontoValor).toFixed(2)}`);
+      await setOrcamentos(orcamentos);
+      await registrarLog('Salvou Orçamento', `Total: R$ ${(subtotal - descontoValor).toFixed(2)}`);
       alert('Orçamento salvo!');
       limparCarrinho();
       atualizarDashboard();
@@ -1461,10 +1604,10 @@ function excluirVenda(id) {
       renderCarrinho();
     }
 
-    function excluirOrcamento(id) {
+    async function excluirOrcamento(id) {
       if (!confirm('Excluir orçamento?')) return;
-      setOrcamentos(getOrcamentos().filter(o => o.id !== id));
-      registrarLog('Excluiu Orçamento', `ID ${id}`);
+      await setOrcamentos(getOrcamentos().filter(o => o.id !== id));
+      await registrarLog('Excluiu Orçamento', `ID ${id}`);
       renderOrcamentos();
       atualizarDashboard();
     }
@@ -1515,7 +1658,7 @@ function excluirVenda(id) {
         </table>`;
     }
 
-    function zerarMesAtual() {
+    async function zerarMesAtual() {
       const vendasMes = getVendasMesAtual();
       const total = vendasMes.reduce((s, v) => s + v.total, 0);
       const lucro = vendasMes.reduce((s, v) => s + (v.lucro || 0), 0);
@@ -1528,9 +1671,9 @@ function excluirVenda(id) {
         mesNome: agora.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
         total, lucro, dataZero: agora.toISOString(), qtdVendas: vendasMes.length
       });
-      setHistoricoMensal(historico);
-      setUltimoZero(Date.now());
-      registrarLog('Zerou Mês', `Total: R$ ${total.toFixed(2)} | Lucro: R$ ${lucro.toFixed(2)}`);
+      await setHistoricoMensal(historico);
+      await setUltimoZero(Date.now());
+      await registrarLog('Zerou Mês', `Total: R$ ${total.toFixed(2)} | Lucro: R$ ${lucro.toFixed(2)}`);
       alert('Mês zerado e salvo no histórico!');
       renderRelatorioMensal();
     }
@@ -1582,7 +1725,7 @@ function excluirVenda(id) {
       `).join('');
     }
 
-    function adicionarUsuario() {
+    async function adicionarUsuario() {
       const login = document.getElementById('novo-user').value.trim().toLowerCase();
       const nome = document.getElementById('novo-nome').value.trim();
       const senha = document.getElementById('novo-senha').value;
@@ -1591,8 +1734,8 @@ function excluirVenda(id) {
       const usuarios = getUsuarios();
       if (usuarios[login]) { alert('Usuário já existe'); return; }
       usuarios[login] = { senha, nome, tipo };
-      setUsuarios(usuarios);
-      registrarLog('Adicionou Usuário', `${nome} (${login}) - ${tipo}`);
+      await setUsuarios(usuarios);
+      await registrarLog('Adicionou Usuário', `${nome} (${login}) - ${tipo}`);
       document.getElementById('novo-user').value = '';
       document.getElementById('novo-nome').value = '';
       document.getElementById('novo-senha').value = '';
@@ -1601,13 +1744,13 @@ function excluirVenda(id) {
       alert('Usuário adicionado!');
     }
 
-    function removerUsuario(login) {
+    async function removerUsuario(login) {
       if (!confirm('Remover este usuário?')) return;
       const usuarios = getUsuarios();
       const nome = usuarios[login]?.nome || login;
       delete usuarios[login];
-      setUsuarios(usuarios);
-      registrarLog('Removeu Usuário', `${nome} (${login})`);
+      await setUsuarios(usuarios);
+      await registrarLog('Removeu Usuário', `${nome} (${login})`);
       renderUsuarios();
     }
 
@@ -1617,7 +1760,7 @@ function excluirVenda(id) {
       const vendasHoje = getVendas().filter(v => new Date(v.data).toDateString() === hoje);
       const totalHoje = vendasHoje.reduce((s, v) => s + v.total, 0);
 
-      if (usuarioAtual.tipo === 'admin') {
+      if (usuarioAtual && usuarioAtual.tipo === 'admin') {
         document.getElementById('dash-vendas-hoje').textContent = `R$ ${totalHoje.toFixed(2)}`;
       } else {
         document.getElementById('dash-vendas-hoje').textContent = '••••';
@@ -1627,14 +1770,22 @@ function excluirVenda(id) {
       document.getElementById('dash-orcamentos').textContent = getOrcamentos().length;
     }
 
-    init();
-    window.onload = () => {
+    // ==================== START ====================
+    init().then(() => {
       const salvo = localStorage.getItem('usuarioLogado');
       if (salvo) {
-        usuarioAtual = JSON.parse(salvo);
-        mostrarApp();
+        try {
+          usuarioAtual = JSON.parse(salvo);
+          // Verifica se o usuário ainda existe
+          if (getUsuarios()[usuarioAtual.login]) {
+            mostrarApp();
+          } else {
+            localStorage.removeItem('usuarioLogado');
+          }
+        } catch(e) {}
       }
-    };
+    });
+
     document.getElementById('login-pass').addEventListener('keypress', e => {
       if (e.key === 'Enter') fazerLogin();
     });
