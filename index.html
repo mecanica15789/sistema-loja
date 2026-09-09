@@ -190,6 +190,22 @@
           <p class="text-slate-500 text-sm mt-1">Total vendido e lucro do mês</p>
         </div>
 
+        <div id="card-clientes" onclick="mostrarTela('clientes')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <div class="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-user-friends text-cyan-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Clientes</h3>
+          <p class="text-slate-500 text-sm mt-1">Cadastro de clientes</p>
+        </div>
+
+        <div id="card-fornecedores" onclick="mostrarTela('fornecedores')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <div class="w-12 h-12 bg-lime-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-truck text-lime-600 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-lg">Fornecedores</h3>
+          <p class="text-slate-500 text-sm mt-1">Cadastro de fornecedores</p>
+        </div>
+
         <div id="card-logs" onclick="mostrarTela('logs')" class="card-hover transition-all cursor-pointer bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
           <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
             <i class="fas fa-list-ul text-orange-600 text-xl"></i>
@@ -628,6 +644,202 @@
         </div>
       </div>
     </main>
+
+    <!-- ========== CLIENTES ========== -->
+    <main id="tela-clientes" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+            <i class="fas fa-arrow-left"></i> Voltar
+          </button>
+          <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
+        </div>
+        <button onclick="abrirModalCliente()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+          <i class="fas fa-plus"></i> Novo Cliente
+        </button>
+      </div>
+
+      <div class="mb-5">
+        <div class="relative">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input id="busca-cliente" type="text" placeholder="Buscar por nome, CPF/CNPJ, telefone..."
+            oninput="filtrarClientes()" class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b">
+              <tr>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Nome</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">CPF/CNPJ</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden md:table-cell">Telefone</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden lg:table-cell">Email</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden xl:table-cell">Cidade</th>
+                <th class="text-center px-4 py-3 font-semibold text-slate-600">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="lista-clientes"></tbody>
+          </table>
+        </div>
+        <div id="sem-clientes" class="hidden p-10 text-center text-slate-500">
+          <i class="fas fa-user-friends text-4xl mb-3 text-slate-300"></i>
+          <p>Nenhum cliente cadastrado</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- ========== FORNECEDORES ========== -->
+    <main id="tela-fornecedores" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <button onclick="mostrarTela('dashboard')" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-1 flex items-center gap-1">
+            <i class="fas fa-arrow-left"></i> Voltar
+          </button>
+          <h2 class="text-2xl font-bold text-slate-800">Fornecedores</h2>
+        </div>
+        <button onclick="abrirModalFornecedor()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+          <i class="fas fa-plus"></i> Novo Fornecedor
+        </button>
+      </div>
+
+      <div class="mb-5">
+        <div class="relative">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input id="busca-fornecedor" type="text" placeholder="Buscar por nome, CNPJ, telefone..."
+            oninput="filtrarFornecedores()" class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b">
+              <tr>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">Nome / Razão Social</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600">CNPJ</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden md:table-cell">Telefone</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden lg:table-cell">Email</th>
+                <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden xl:table-cell">Cidade</th>
+                <th class="text-center px-4 py-3 font-semibold text-slate-600">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="lista-fornecedores"></tbody>
+          </table>
+        </div>
+        <div id="sem-fornecedores" class="hidden p-10 text-center text-slate-500">
+          <i class="fas fa-truck text-4xl mb-3 text-slate-300"></i>
+          <p>Nenhum fornecedor cadastrado</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL CLIENTE -->
+  <div id="modal-cliente" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 no-print">
+    <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-slate-800" id="modal-cliente-titulo">Novo Cliente</h3>
+        <button onclick="fecharModalCliente()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+      </div>
+      <form id="form-cliente" onsubmit="salvarCliente(event)" class="p-6 space-y-4">
+        <input type="hidden" id="cliente-id">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Nome completo *</label>
+          <input id="cliente-nome" required class="w-full px-4 py-2.5 border rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">CPF / CNPJ</label>
+            <input id="cliente-documento" class="w-full px-4 py-2.5 border rounded-xl" placeholder="000.000.000-00">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
+            <input id="cliente-telefone" class="w-full px-4 py-2.5 border rounded-xl" placeholder="(00) 00000-0000">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <input id="cliente-email" type="email" class="w-full px-4 py-2.5 border rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Cidade</label>
+            <input id="cliente-cidade" class="w-full px-4 py-2.5 border rounded-xl">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Estado</label>
+            <input id="cliente-estado" class="w-full px-4 py-2.5 border rounded-xl" maxlength="2" placeholder="UF">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Endereço</label>
+          <input id="cliente-endereco" class="w-full px-4 py-2.5 border rounded-xl">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Observação</label>
+          <textarea id="cliente-obs" rows="2" class="w-full px-4 py-2.5 border rounded-xl resize-none"></textarea>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="fecharModalCliente()" class="flex-1 py-2.5 border rounded-xl text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FORNECEDOR -->
+  <div id="modal-fornecedor" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 no-print">
+    <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-slate-800" id="modal-fornecedor-titulo">Novo Fornecedor</h3>
+        <button onclick="fecharModalFornecedor()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+      </div>
+      <form id="form-fornecedor" onsubmit="salvarFornecedor(event)" class="p-6 space-y-4">
+        <input type="hidden" id="fornecedor-id">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Nome / Razão Social *</label>
+          <input id="fornecedor-nome" required class="w-full px-4 py-2.5 border rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">CNPJ</label>
+            <input id="fornecedor-cnpj" class="w-full px-4 py-2.5 border rounded-xl" placeholder="00.000.000/0000-00">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
+            <input id="fornecedor-telefone" class="w-full px-4 py-2.5 border rounded-xl" placeholder="(00) 00000-0000">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <input id="fornecedor-email" type="email" class="w-full px-4 py-2.5 border rounded-xl">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Contato (pessoa)</label>
+          <input id="fornecedor-contato" class="w-full px-4 py-2.5 border rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Cidade</label>
+            <input id="fornecedor-cidade" class="w-full px-4 py-2.5 border rounded-xl">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Estado</label>
+            <input id="fornecedor-estado" class="w-full px-4 py-2.5 border rounded-xl" maxlength="2" placeholder="UF">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Observação</label>
+          <textarea id="fornecedor-obs" rows="2" class="w-full px-4 py-2.5 border rounded-xl resize-none"></textarea>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="fecharModalFornecedor()" class="flex-1 py-2.5 border rounded-xl text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium">Salvar</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- MODAL PRODUTO -->
@@ -768,7 +980,9 @@
       notasPendentes: [],
       historicoMensal: [],
       ultimoZeroMensal: 0,
-      logs: []
+      logs: [],
+      clientes: [],
+      fornecedores: []
     };
 
     // ==================== HELPERS FIREBASE ====================
@@ -793,7 +1007,9 @@
         { key: 'notasPendentes', path: 'notasPendentes' },
         { key: 'historicoMensal', path: 'historicoMensal' },
         { key: 'ultimoZeroMensal', path: 'ultimoZeroMensal' },
-        { key: 'logs', path: 'logs' }
+        { key: 'logs', path: 'logs' },
+        { key: 'clientes', path: 'clientes' },
+        { key: 'fornecedores', path: 'fornecedores' }
       ];
 
       refs.forEach(({ key, path }) => {
@@ -819,6 +1035,12 @@
             }
             if (key === 'orcamentos' && document.getElementById('tela-orcamentos') && !document.getElementById('tela-orcamentos').classList.contains('hidden')) {
               renderOrcamentos();
+            }
+            if (key === 'clientes' && document.getElementById('tela-clientes') && !document.getElementById('tela-clientes').classList.contains('hidden')) {
+              renderClientes();
+            }
+            if (key === 'fornecedores' && document.getElementById('tela-fornecedores') && !document.getElementById('tela-fornecedores').classList.contains('hidden')) {
+              renderFornecedores();
             }
             if (key === 'vendas' && document.getElementById('tela-vendedores') && !document.getElementById('tela-vendedores').classList.contains('hidden')) {
               renderVendedoresDetalhado();
@@ -859,6 +1081,8 @@
     function getHistoricoMensal() { return cache.historicoMensal; }
     function getUltimoZero() { return cache.ultimoZeroMensal; }
     function getLogs() { return cache.logs; }
+    function getClientes() { return cache.clientes; }
+    function getFornecedores() { return cache.fornecedores; }
 
     // ==================== SETTERS ====================
     async function setUsuarios(u) { cache.usuarios = u; await salvarNoFirebase('usuarios', u); }
@@ -869,6 +1093,8 @@
     async function setHistoricoMensal(h) { cache.historicoMensal = h; await salvarNoFirebase('historicoMensal', h); }
     async function setUltimoZero(ts) { cache.ultimoZeroMensal = ts; await salvarNoFirebase('ultimoZeroMensal', ts); }
     async function setLogs(l) { cache.logs = l; await salvarNoFirebase('logs', l); }
+    async function setClientes(c) { cache.clientes = c; await salvarNoFirebase('clientes', c); }
+    async function setFornecedores(f) { cache.fornecedores = f; await salvarNoFirebase('fornecedores', f); }
 
     // ==================== INICIALIZAÇÃO ====================
     async function init() {
@@ -898,7 +1124,7 @@
       }
 
       // Garante que as outras listas existam
-      const paths = ['vendas', 'orcamentos', 'notasPendentes', 'historicoMensal', 'logs'];
+      const paths = ['vendas', 'orcamentos', 'notasPendentes', 'historicoMensal', 'logs', 'clientes', 'fornecedores'];
       for (const p of paths) {
         const s = await db.ref(p).once('value');
         if (!s.exists()) await db.ref(p).set([]);
@@ -969,6 +1195,8 @@
       document.getElementById('card-caixa-venda').classList.toggle('hidden', !(isCaixa || isAdmin));
       document.getElementById('card-orcamentos').classList.toggle('hidden', isCaixa);
       document.getElementById('card-produtos').classList.toggle('hidden', isCaixa);
+      document.getElementById('card-clientes').classList.toggle('hidden', isCaixa);
+      document.getElementById('card-fornecedores').classList.toggle('hidden', isCaixa);
       document.getElementById('card-vendedores').classList.toggle('hidden', !isAdmin);
       document.getElementById('card-caixa').classList.toggle('hidden', !isAdmin);
       document.getElementById('card-mensal').classList.toggle('hidden', !isAdmin);
@@ -995,7 +1223,7 @@
         return;
       }
 
-      ['dashboard','produtos','venda','orcamentos','caixa','config','vendedores','mensal','caixa-venda','logs'].forEach(t => {
+      ['dashboard','produtos','venda','orcamentos','caixa','config','vendedores','mensal','caixa-venda','logs','clientes','fornecedores'].forEach(t => {
         const el = document.getElementById('tela-' + t);
         if (el) el.classList.add('hidden');
       });
@@ -1024,6 +1252,8 @@
       if (tela === 'vendedores') renderVendedoresDetalhado();
       if (tela === 'mensal') renderRelatorioMensal();
       if (tela === 'logs') renderLogs();
+      if (tela === 'clientes') renderClientes();
+      if (tela === 'fornecedores') renderFornecedores();
       if (tela === 'dashboard') atualizarDashboard();
     }
 
@@ -1436,6 +1666,198 @@
       await registrarLog('Excluiu Produto', p ? `${p.codigo} - ${p.nome}` : `ID ${id}`);
       renderProdutos();
       atualizarDashboard();
+    }
+
+    // ==================== CLIENTES ====================
+    function renderClientes(filtro = '') {
+      const clientes = getClientes();
+      const tbody = document.getElementById('lista-clientes');
+      const sem = document.getElementById('sem-clientes');
+      const termo = filtro.toLowerCase();
+
+      const filtrados = clientes.filter(c =>
+        (c.nome || '').toLowerCase().includes(termo) ||
+        (c.documento || '').toLowerCase().includes(termo) ||
+        (c.telefone || '').toLowerCase().includes(termo) ||
+        (c.email || '').toLowerCase().includes(termo) ||
+        (c.cidade || '').toLowerCase().includes(termo)
+      );
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = '';
+        sem.classList.remove('hidden');
+        return;
+      }
+      sem.classList.add('hidden');
+
+      tbody.innerHTML = filtrados.map(c => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="px-4 py-3 font-medium text-slate-800">${c.nome}</td>
+          <td class="px-4 py-3 text-slate-600">${c.documento || '-'}</td>
+          <td class="px-4 py-3 hidden md:table-cell text-slate-600">${c.telefone || '-'}</td>
+          <td class="px-4 py-3 hidden lg:table-cell text-slate-600">${c.email || '-'}</td>
+          <td class="px-4 py-3 hidden xl:table-cell text-slate-600">${c.cidade || '-'}${c.estado ? ' / ' + c.estado : ''}</td>
+          <td class="px-4 py-3 text-center">
+            <button onclick="editarCliente(${c.id})" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
+            <button onclick="excluirCliente(${c.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filtrarClientes() { renderClientes(document.getElementById('busca-cliente').value); }
+
+    function abrirModalCliente(cliente = null) {
+      document.getElementById('modal-cliente').classList.remove('hidden');
+      document.getElementById('modal-cliente-titulo').textContent = cliente ? 'Editar Cliente' : 'Novo Cliente';
+      document.getElementById('cliente-id').value = cliente ? cliente.id : '';
+      document.getElementById('cliente-nome').value = cliente ? cliente.nome : '';
+      document.getElementById('cliente-documento').value = cliente ? cliente.documento || '' : '';
+      document.getElementById('cliente-telefone').value = cliente ? cliente.telefone || '' : '';
+      document.getElementById('cliente-email').value = cliente ? cliente.email || '' : '';
+      document.getElementById('cliente-cidade').value = cliente ? cliente.cidade || '' : '';
+      document.getElementById('cliente-estado').value = cliente ? cliente.estado || '' : '';
+      document.getElementById('cliente-endereco').value = cliente ? cliente.endereco || '' : '';
+      document.getElementById('cliente-obs').value = cliente ? cliente.obs || '' : '';
+    }
+
+    function fecharModalCliente() { document.getElementById('modal-cliente').classList.add('hidden'); }
+
+    async function salvarCliente(e) {
+      e.preventDefault();
+      const clientes = getClientes();
+      const id = document.getElementById('cliente-id').value;
+      const dados = {
+        nome: document.getElementById('cliente-nome').value.trim(),
+        documento: document.getElementById('cliente-documento').value.trim(),
+        telefone: document.getElementById('cliente-telefone').value.trim(),
+        email: document.getElementById('cliente-email').value.trim(),
+        cidade: document.getElementById('cliente-cidade').value.trim(),
+        estado: document.getElementById('cliente-estado').value.trim().toUpperCase(),
+        endereco: document.getElementById('cliente-endereco').value.trim(),
+        obs: document.getElementById('cliente-obs').value.trim()
+      };
+      if (id) {
+        const idx = clientes.findIndex(c => c.id == id);
+        if (idx >= 0) clientes[idx] = { ...clientes[idx], ...dados };
+        await registrarLog('Editou Cliente', dados.nome);
+      } else {
+        dados.id = Date.now();
+        clientes.push(dados);
+        await registrarLog('Cadastrou Cliente', dados.nome);
+      }
+      await setClientes(clientes);
+      fecharModalCliente();
+      renderClientes();
+    }
+
+    function editarCliente(id) {
+      const c = getClientes().find(x => x.id === id);
+      if (c) abrirModalCliente(c);
+    }
+
+    async function excluirCliente(id) {
+      const c = getClientes().find(x => x.id === id);
+      if (!confirm('Excluir este cliente?')) return;
+      await setClientes(getClientes().filter(x => x.id !== id));
+      await registrarLog('Excluiu Cliente', c ? c.nome : `ID ${id}`);
+      renderClientes();
+    }
+
+    // ==================== FORNECEDORES ====================
+    function renderFornecedores(filtro = '') {
+      const fornecedores = getFornecedores();
+      const tbody = document.getElementById('lista-fornecedores');
+      const sem = document.getElementById('sem-fornecedores');
+      const termo = filtro.toLowerCase();
+
+      const filtrados = fornecedores.filter(f =>
+        (f.nome || '').toLowerCase().includes(termo) ||
+        (f.cnpj || '').toLowerCase().includes(termo) ||
+        (f.telefone || '').toLowerCase().includes(termo) ||
+        (f.email || '').toLowerCase().includes(termo) ||
+        (f.cidade || '').toLowerCase().includes(termo)
+      );
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = '';
+        sem.classList.remove('hidden');
+        return;
+      }
+      sem.classList.add('hidden');
+
+      tbody.innerHTML = filtrados.map(f => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="px-4 py-3 font-medium text-slate-800">${f.nome}</td>
+          <td class="px-4 py-3 text-slate-600">${f.cnpj || '-'}</td>
+          <td class="px-4 py-3 hidden md:table-cell text-slate-600">${f.telefone || '-'}</td>
+          <td class="px-4 py-3 hidden lg:table-cell text-slate-600">${f.email || '-'}</td>
+          <td class="px-4 py-3 hidden xl:table-cell text-slate-600">${f.cidade || '-'}${f.estado ? ' / ' + f.estado : ''}</td>
+          <td class="px-4 py-3 text-center">
+            <button onclick="editarFornecedor(${f.id})" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
+            <button onclick="excluirFornecedor(${f.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filtrarFornecedores() { renderFornecedores(document.getElementById('busca-fornecedor').value); }
+
+    function abrirModalFornecedor(fornecedor = null) {
+      document.getElementById('modal-fornecedor').classList.remove('hidden');
+      document.getElementById('modal-fornecedor-titulo').textContent = fornecedor ? 'Editar Fornecedor' : 'Novo Fornecedor';
+      document.getElementById('fornecedor-id').value = fornecedor ? fornecedor.id : '';
+      document.getElementById('fornecedor-nome').value = fornecedor ? fornecedor.nome : '';
+      document.getElementById('fornecedor-cnpj').value = fornecedor ? fornecedor.cnpj || '' : '';
+      document.getElementById('fornecedor-telefone').value = fornecedor ? fornecedor.telefone || '' : '';
+      document.getElementById('fornecedor-email').value = fornecedor ? fornecedor.email || '' : '';
+      document.getElementById('fornecedor-contato').value = fornecedor ? fornecedor.contato || '' : '';
+      document.getElementById('fornecedor-cidade').value = fornecedor ? fornecedor.cidade || '' : '';
+      document.getElementById('fornecedor-estado').value = fornecedor ? fornecedor.estado || '' : '';
+      document.getElementById('fornecedor-obs').value = fornecedor ? fornecedor.obs || '' : '';
+    }
+
+    function fecharModalFornecedor() { document.getElementById('modal-fornecedor').classList.add('hidden'); }
+
+    async function salvarFornecedor(e) {
+      e.preventDefault();
+      const fornecedores = getFornecedores();
+      const id = document.getElementById('fornecedor-id').value;
+      const dados = {
+        nome: document.getElementById('fornecedor-nome').value.trim(),
+        cnpj: document.getElementById('fornecedor-cnpj').value.trim(),
+        telefone: document.getElementById('fornecedor-telefone').value.trim(),
+        email: document.getElementById('fornecedor-email').value.trim(),
+        contato: document.getElementById('fornecedor-contato').value.trim(),
+        cidade: document.getElementById('fornecedor-cidade').value.trim(),
+        estado: document.getElementById('fornecedor-estado').value.trim().toUpperCase(),
+        obs: document.getElementById('fornecedor-obs').value.trim()
+      };
+      if (id) {
+        const idx = fornecedores.findIndex(f => f.id == id);
+        if (idx >= 0) fornecedores[idx] = { ...fornecedores[idx], ...dados };
+        await registrarLog('Editou Fornecedor', dados.nome);
+      } else {
+        dados.id = Date.now();
+        fornecedores.push(dados);
+        await registrarLog('Cadastrou Fornecedor', dados.nome);
+      }
+      await setFornecedores(fornecedores);
+      fecharModalFornecedor();
+      renderFornecedores();
+    }
+
+    function editarFornecedor(id) {
+      const f = getFornecedores().find(x => x.id === id);
+      if (f) abrirModalFornecedor(f);
+    }
+
+    async function excluirFornecedor(id) {
+      const f = getFornecedores().find(x => x.id === id);
+      if (!confirm('Excluir este fornecedor?')) return;
+      await setFornecedores(getFornecedores().filter(x => x.id !== id));
+      await registrarLog('Excluiu Fornecedor', f ? f.nome : `ID ${id}`);
+      renderFornecedores();
     }
 
     // ==================== CARRINHO ====================
